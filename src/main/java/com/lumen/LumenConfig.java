@@ -46,7 +46,7 @@ public class LumenConfig {
     public static boolean atmosphericFog = true;
     @Config.Comment("Where fog starts, as a fraction of render distance (vanilla is ~0.75)")
     @Config.RangeDouble(min = 0.05, max = 0.95)
-    public static double fogStart = 0.35;
+    public static double fogStart = 0.55;
 
     @Mod.EventBusSubscriber(modid = Lumen.MODID)
     public static class Sync {

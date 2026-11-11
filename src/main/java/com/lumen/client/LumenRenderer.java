@@ -196,7 +196,9 @@ public class LumenRenderer {
         if (e.getState().getMaterial() != Material.AIR) return;  // leave water/lava fog alone
         if (!mc.world.provider.isSurfaceWorld()) return;
         float far = e.getFarPlaneDistance();
-        GlStateManager.setFogStart(far * (float) LumenConfig.fogStart);
+        // never start the haze closer than 48 blocks, so low render distances stay clear
+        float start = Math.max(far * (float) LumenConfig.fogStart, Math.min(48f, far * 0.8f));
+        GlStateManager.setFogStart(start);
         GlStateManager.setFogEnd(far);
     }
 
@@ -262,9 +264,10 @@ public class LumenRenderer {
             float day = 1f - Math.max(golden, night);
 
             // day: very slight warmth + richness; golden hour: amber; night: moonlit blue
-            r = day * 1.00f + golden * 1.00f + night * 0.82f;
-            g = day * 0.97f + golden * 0.86f + night * 0.88f;
-            b = day * 0.92f + golden * 0.70f + night * 1.00f;
+            // daytime stays almost neutral so the blue sky isn't washed out
+            r = day * 1.00f + golden * 1.00f + night * 0.80f;
+            g = day * 0.99f + golden * 0.86f + night * 0.88f;
+            b = day * 0.97f + golden * 0.70f + night * 1.00f;
             lr = golden * 0.05f;
             lg = golden * 0.02f;
             // rain: desaturated grey-blue

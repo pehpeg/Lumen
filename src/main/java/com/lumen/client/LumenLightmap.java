@@ -98,15 +98,16 @@ public class LumenLightmap {
 
             // Torchlight: warm where block light outweighs daylight, strongest close to the source.
             float warm = clamp01(blockLight - skyLight * 0.9f) * warmth;
-            r *= 1f + 0.12f * warm;
-            g *= 1f - 0.10f * warm;
-            b *= 1f - 0.40f * warm;
+            // orange glow: lift red, keep green, cut blue (reads as warm even on green grass)
+            r *= 1f + 0.35f * warm;
+            g *= 1f + 0.04f * warm;
+            b *= 1f - 0.60f * warm;
 
             // Moonlight: open areas at night get a cool blue cast, but not near torches.
             float cool = night * (sky / 15f) * (1f - clamp01(blockLight * 1.5f)) * moon;
-            r *= 1f - 0.22f * cool;
-            g *= 1f - 0.10f * cool;
-            b *= 1f + 0.08f * cool;
+            r *= 1f - 0.40f * cool;
+            g *= 1f - 0.15f * cool;
+            b *= 1f + 0.35f * cool;
 
             // Deeper shadows: push dim light darker, leave bright light alone (adds contrast).
             float lum = Math.max(r, Math.max(g, b));
