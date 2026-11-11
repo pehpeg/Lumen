@@ -2,8 +2,12 @@ name: Build
 
 on:
   push:
+    branches-ignore: [test-results]
   pull_request:
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -28,3 +32,49 @@ jobs:
         with:
           name: Lumen
           path: build/libs/*.jar
+
+  # Runs the real game on a virtual screen with software OpenGL, takes Lumen ON/OFF
+  # screenshots and pushes them to the test-results branch.
+  visual-test:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'zulu'
+
+      - name: Install virtual display and software OpenGL
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q xvfb x11-xserver-utils libgl1-mesa-dri mesa-utils libxxf86vm1 libxtst6
+
+      - name: Run Minecraft auto-test
+        env:
+          LIBGL_ALWAYS_SOFTWARE: '1'
+        run: |
+          chmod +x gradlew
+          mkdir -p run
+          timeout 1800 xvfb-run -a -s "-screen 0 1280x720x24" \
+            ./gradlew runClient --no-daemon -Pextra_jvm_args="-Dlumen.autotest=true" 2>&1 | tee client-output.log | grep -E "LUMEN-AUTOTEST|Exception|Error|FATAL|OpenGL" || true
+
+      - name: Publish results to test-results branch
+        if: always()
+        run: |
+          mkdir -p /tmp/results
+          cp run/screenshots/*.png run/screenshots/lumen-report.txt /tmp/results/ 2>/dev/null || true
+          cp run/logs/latest.log /tmp/results/latest.log 2>/dev/null || true
+          tail -n 400 client-output.log > /tmp/results/client-output-tail.log 2>/dev/null || true
+          ls -la /tmp/results
+          cd /tmp/results
+          git init -q -b test-results
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add -A
+          git commit -qm "Visual test results for ${GITHUB_SHA}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git" test-results

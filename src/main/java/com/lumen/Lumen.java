@@ -1,5 +1,6 @@
 package com.lumen;
 
+import com.lumen.client.LumenAutoTest;
 import com.lumen.client.LumenLightmap;
 import com.lumen.client.LumenRenderer;
 import net.minecraft.client.settings.KeyBinding;
@@ -27,5 +28,6 @@ public class Lumen {
         ClientRegistry.registerKeyBinding(toggleKey);
         MinecraftForge.EVENT_BUS.register(new LumenRenderer());
         MinecraftForge.EVENT_BUS.register(new LumenLightmap());
+        if (LumenAutoTest.isEnabled()) MinecraftForge.EVENT_BUS.register(new LumenAutoTest());
     }
 }

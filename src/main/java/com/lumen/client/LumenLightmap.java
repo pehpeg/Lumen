@@ -31,6 +31,10 @@ public class LumenLightmap {
     private Field colorsField, textureField;
     private boolean broken;
 
+    /** For diagnostics: how many times the lightmap was graded successfully. */
+    public static int gradeCount;
+    public static boolean failed;
+
     /** Copy of what we last wrote, so we never grade the same lightmap twice. */
     private final int[] lastWritten = new int[256];
     private boolean hasLast;
@@ -41,6 +45,7 @@ public class LumenLightmap {
             textureField = ReflectionHelper.findField(EntityRenderer.class, "lightmapTexture", "field_78513_d");
         } catch (Exception ex) {
             broken = true;
+            failed = true;
             LOG.warn("Lumen: couldn't access the lightmap, lighting grading disabled", ex);
         }
     }
@@ -61,6 +66,7 @@ public class LumenLightmap {
             tex = (DynamicTexture) textureField.get(mc.entityRenderer);
         } catch (Exception ex) {
             broken = true;
+            failed = true;
             LOG.warn("Lumen: lightmap access failed, lighting grading disabled", ex);
             return;
         }
@@ -116,5 +122,6 @@ public class LumenLightmap {
         System.arraycopy(colors, 0, lastWritten, 0, 256);
         hasLast = true;
         tex.updateDynamicTexture();
+        gradeCount++;
     }
 }

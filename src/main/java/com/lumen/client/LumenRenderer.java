@@ -4,7 +4,6 @@ import com.lumen.Lumen;
 import com.lumen.LumenConfig;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.GlStateManager.DestFactor;
@@ -17,7 +16,6 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.EntityViewRenderEvent;
-import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
@@ -74,8 +72,12 @@ public class LumenRenderer {
 
     @SubscribeEvent
     public void onWorldLast(RenderWorldLastEvent e) {
-        if (!active() || !mc.world.provider.isSurfaceWorld()) return;
-        float pt = e.getPartialTicks();
+        if (!active()) return;
+        if (mc.world.provider.isSurfaceWorld()) drawSkyGlow(e.getPartialTicks());
+        drawScreenEffects(e.getPartialTicks());
+    }
+
+    private void drawSkyGlow(float pt) {
         World world = mc.world;
         Vec3d sun = sunDirection(world, pt);
         float clearSky = 1f - world.getRainStrength(pt);
@@ -200,15 +202,23 @@ public class LumenRenderer {
 
     // ---------------------------------------------------------------- screen grading + vignette
 
-    @SubscribeEvent
-    public void onOverlay(RenderGameOverlayEvent.Pre e) {
-        if (e.getType() != RenderGameOverlayEvent.ElementType.ALL) return;
-        if (!active()) return;
+    // Drawn at the end of the world pass (not in the HUD overlay) so it still applies
+    // with the HUD hidden (F1), and never tints the HUD or menus.
+    private void drawScreenEffects(float pt) {
+        if (!LumenConfig.colorGrading && !LumenConfig.vignette) return;
+        double w = 1, h = 1; // normalized screen space
 
-        ScaledResolution res = e.getResolution();
-        double w = res.getScaledWidth_double(), h = res.getScaledHeight_double();
-        float pt = e.getPartialTicks();
+        GlStateManager.matrixMode(GL11.GL_PROJECTION);
+        GlStateManager.pushMatrix();
+        GlStateManager.loadIdentity();
+        GlStateManager.ortho(0, 1, 1, 0, -1, 1);
+        GlStateManager.matrixMode(GL11.GL_MODELVIEW);
+        GlStateManager.pushMatrix();
+        GlStateManager.loadIdentity();
 
+        GlStateManager.disableFog();
+        GlStateManager.disableCull();
+        GlStateManager.disableLighting();
         GlStateManager.disableTexture2D();
         GlStateManager.disableAlpha();
         GlStateManager.disableDepth();
@@ -225,7 +235,15 @@ public class LumenRenderer {
         GlStateManager.enableDepth();
         GlStateManager.enableAlpha();
         GlStateManager.enableTexture2D();
+        GlStateManager.enableCull();
+        GlStateManager.enableFog();
+        GlStateManager.disableBlend();
         GlStateManager.color(1, 1, 1, 1);
+
+        GlStateManager.matrixMode(GL11.GL_PROJECTION);
+        GlStateManager.popMatrix();
+        GlStateManager.matrixMode(GL11.GL_MODELVIEW);
+        GlStateManager.popMatrix();
     }
 
     private void drawGrade(double w, double h, float pt) {
