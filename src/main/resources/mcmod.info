@@ -1,0 +1,12 @@
+[
+{
+  "modid": "lumen",
+  "name": "Lumen",
+  "description": "Shader-style visuals without shaders: sun glow and light rays, golden-hour and night color grading, atmospheric fog and a vignette. Near-zero performance cost. Toggle with F7.",
+  "version": "1.0.0",
+  "mcversion": "1.12.2",
+  "authorList": [],
+  "credits": "",
+  "dependencies": []
+}
+]
