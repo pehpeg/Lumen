@@ -101,7 +101,7 @@ public class LumenParticles {
         Firefly(World w, double x, double y, double z, Random r) {
             super(w, x, y, z);
             particleMaxAge = 160 + r.nextInt(160);
-            particleScale = 0.55f + r.nextFloat() * 0.25f;
+            particleScale = 1.6f + r.nextFloat() * 0.8f;
             setParticleTextureIndex(1);
             setRBGColorF(0.80f, 1.0f, 0.30f);
             particleGravity = 0;
@@ -200,7 +200,7 @@ public class LumenParticles {
         Dust(World w, double x, double y, double z, Random r) {
             super(w, x, y, z);
             particleMaxAge = 120 + r.nextInt(120);
-            particleScale = 0.25f + r.nextFloat() * 0.2f;
+            particleScale = 0.9f + r.nextFloat() * 0.6f;
             setParticleTextureIndex(7);
             float c = 0.85f + r.nextFloat() * 0.15f;
             setRBGColorF(c, c * 0.95f, c * 0.85f);

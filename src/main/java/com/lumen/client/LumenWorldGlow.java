@@ -141,7 +141,7 @@ public class LumenWorldGlow {
     private Glow makeGlow(World world, BlockPos p, IBlockState state, Block block, int light) {
         double x = p.getX() + 0.5, y = p.getY() + 0.5, z = p.getZ() + 0.5;
         float r = 1.0f, g = 0.72f, b = 0.38f, size = 0.6f + light * 0.06f, flicker = 0f;
-        float alpha = 0.10f + light * 0.016f;
+        float alpha = 0.14f + light * 0.022f;
 
         if (block == Blocks.TORCH || block == Blocks.FIRE || block == Blocks.LIT_PUMPKIN
                 || block == Blocks.LIT_FURNACE) {

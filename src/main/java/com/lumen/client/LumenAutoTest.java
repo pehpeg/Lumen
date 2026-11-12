@@ -68,11 +68,12 @@ public class LumenAutoTest {
         scenes.add(s);
 
         s = new Scene("4_night_sky_star", 18000, 30f, -35f, 60);
+        s.setup = () -> mc.gameSettings.clouds = 0;  // clouds would hide the star from the camera
         s.beforeShot = () -> LumenAtmosphere.spawnStar(mc.player.getLookVec());
         scenes.add(s);
 
         s = new Scene("5_cave_ores", 18000, 0f, 8f, 260);
-        s.setup = this::buildOreCave;
+        s.setup = () -> { mc.gameSettings.clouds = 2; buildOreCave(); };
         scenes.add(s);
 
         s = new Scene("6_swamp", 6000, 45f, 0f, 420);
@@ -239,7 +240,9 @@ public class LumenAutoTest {
                 skipScene = true;
                 return;
             }
+            w.getChunkProvider().provideChunk(found.getX() >> 4, found.getZ() >> 4); // load it first
             BlockPos top = w.getHeight(found);
+            log(biome.getBiomeName() + " found at " + top);
             EntityPlayerMP p = w.getMinecraftServer().getPlayerList().getPlayers().get(0);
             p.capabilities.isFlying = true;
             p.connection.setPlayerLocation(top.getX() + 0.5, top.getY() + 3, top.getZ() + 0.5, 45f, 0f);
