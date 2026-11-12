@@ -75,13 +75,13 @@ public class LumenConfig {
     @Config.Comment("Lens flare when looking toward the sun (hidden when the sun is blocked)")
     public static boolean lensFlare = true;
 
-    @Config.Comment("Soft glow halos around nearby torches, lava, glowstone, fire and other lights (fake bloom)")
-    public static boolean blockGlow = true;
-    @Config.RangeDouble(min = 0, max = 2)
-    public static double blockGlowStrength = 1.0;
-    @Config.Comment("Max number of halos drawn at once")
-    @Config.RangeInt(min = 8, max = 256)
-    public static int blockGlowMaxLights = 64;
+    @Config.Comment("Bloom: light sources (torches, lava, glowstone, glowing ores, fireflies, burning mobs) softly glow and bleed light, hidden correctly behind walls")
+    public static boolean bloom = true;
+    @Config.RangeDouble(min = 0, max = 3)
+    public static double bloomStrength = 1.0;
+    @Config.Comment("Max number of light blocks that bloom at once (nearest first)")
+    @Config.RangeInt(min = 16, max = 512)
+    public static int bloomMaxLights = 160;
 
     @Config.Comment("Ores glow in the dark (masks are generated automatically, works with modded ores)")
     public static boolean emissiveOres = true;

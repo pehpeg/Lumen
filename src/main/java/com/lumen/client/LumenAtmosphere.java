@@ -12,7 +12,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.BiomeDictionary;
 import net.minecraftforge.common.BiomeDictionary.Type;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -121,10 +120,8 @@ public class LumenAtmosphere {
 
     // ---------------------------------------------------------------- rendering
 
-    @SubscribeEvent
-    public void onRender(RenderWorldLastEvent e) {
+    public void renderStars(float pt) {
         if (stars.isEmpty() || !LumenConfig.enabled || !LumenConfig.shootingStars) return;
-        float pt = e.getPartialTicks();
 
         LumenGl.prepare();
         GlStateManager.disableTexture2D();

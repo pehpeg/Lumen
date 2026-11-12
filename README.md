@@ -10,7 +10,7 @@ tweaks to vanilla fog: no framebuffers, no shadow pass, no GLSL. Expect ~0–2 F
 - **Color grading** – warm amber golden hour, cool blue nights, grey-blue rain, teal underwater, warm Nether
 - **Atmospheric fog** – depth haze starts closer (configurable) and turns peach at dawn/dusk
 - **Vignette** – darkened screen edges
-- **Glow halos** – soft "fake bloom" around nearby torches, lava, glowstone, fire, sea lanterns, redstone and portals, fading out in daylight
+- **Bloom** – real selective bloom: light blocks glow in their own texture, torch flames, lava, glowing ores, fireflies and burning mobs bleed soft light; drawn offscreen with the scene's depth so walls hide it, blurred by cheap downsampling (no shaders)
 - **Emissive ores** – ores glow in dark caves; glow masks are generated automatically by comparing each ore texture with stone/netherrack/end stone, so modded ores work too (coal excluded by default)
 - **Ambient particles** – fireflies on warm nights, leaves drifting from trees, dust motes in caves (respects the vanilla particle setting)
 - **Biome atmosphere** – green swamp haze, warm desert dust, cold snowy air and more via Forge's biome dictionary, blended smoothly as you walk
@@ -19,7 +19,7 @@ tweaks to vanilla fog: no framebuffers, no shadow pass, no GLSL. Expect ~0–2 F
 - **Lens flare** – subtle ghosts when looking toward the sun, hidden when terrain or trees block it
 
 **Requires [MixinBooter](https://www.curseforge.com/minecraft/mc-mods/mixin-booter)** (used for dynamic lights).
-- **F7** toggles everything; every effect has its own switch and strength in
+- **K** switches between Lumen and vanilla instantly (rebindable in Controls → Lumen); every effect has its own switch and strength in
   Mods → Lumen → Config (or `config/lumen.cfg`)
 
 ## Building

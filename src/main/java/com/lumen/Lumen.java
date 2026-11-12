@@ -30,13 +30,16 @@ public class Lumen {
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
-        toggleKey = new KeyBinding("key.lumen.toggle", Keyboard.KEY_F7, "key.categories.lumen");
+        toggleKey = new KeyBinding("key.lumen.toggle", Keyboard.KEY_K, "key.categories.lumen");
         ClientRegistry.registerKeyBinding(toggleKey);
-        MinecraftForge.EVENT_BUS.register(new LumenRenderer());
+        LumenWorldGlow worldGlow = new LumenWorldGlow();
+        LumenParticles particles = new LumenParticles();
+        LumenAtmosphere atmosphere = new LumenAtmosphere();
+        MinecraftForge.EVENT_BUS.register(new LumenRenderer(worldGlow, particles, atmosphere));
         MinecraftForge.EVENT_BUS.register(new LumenLightmap());
-        MinecraftForge.EVENT_BUS.register(new LumenAtmosphere());
-        MinecraftForge.EVENT_BUS.register(new LumenWorldGlow());
-        MinecraftForge.EVENT_BUS.register(new LumenParticles());
+        MinecraftForge.EVENT_BUS.register(atmosphere);
+        MinecraftForge.EVENT_BUS.register(worldGlow);
+        MinecraftForge.EVENT_BUS.register(particles);
         MinecraftForge.EVENT_BUS.register(new LumenDynamicLights());
         MinecraftForge.EVENT_BUS.register(new LumenShadows());
         if (LumenAutoTest.isEnabled()) MinecraftForge.EVENT_BUS.register(new LumenAutoTest());

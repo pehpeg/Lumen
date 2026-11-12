@@ -2,52 +2,55 @@ package com.lumen.client;
 
 import com.lumen.LumenConfig;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockTorch;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.ActiveRenderInfo;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.GlStateManager.DestFactor;
 import net.minecraft.client.renderer.GlStateManager.SourceFactor;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Entity;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Glow halos around light sources ("fake bloom") and emissive ores.
- *
- * Every 10 ticks a small area around the player is scanned for light-emitting blocks and
- * ores; each frame those (at most a few dozen halos and a few hundred ore faces) are drawn
- * as simple quads. No framebuffers, no shaders, no chunk rebuilds.
+ * Finds what glows around the player (scanned every 10 ticks) and draws it:
+ *  - emissive ore overlays, visible in the scene
+ *  - bloom sources (light blocks in their own texture, torch flames, lava, glowing ores,
+ *    glowing/burning entities), drawn into LumenBloom's offscreen image each frame
  */
 public class LumenWorldGlow {
 
-    private static final int RADIUS_XZ = 16, RADIUS_Y = 12;
-
+    private static final int RADIUS_XZ = 20, RADIUS_Y = 14;
     private final Minecraft mc = Minecraft.getMinecraft();
 
-    private static final class Glow {
-        final double x, y, z;
-        final float r, g, b, size, flicker;
-        float alpha;
-        Glow(double x, double y, double z, float r, float g, float b, float size, float flicker, float alpha) {
-            this.x = x; this.y = y; this.z = z; this.r = r; this.g = g; this.b = b;
-            this.size = size; this.flicker = flicker; this.alpha = alpha;
+    /** Shapes a bloom source can have. */
+    private static final int CUBE = 0, FLAME = 1, TOP = 2;
+
+    private static final class Light {
+        final BlockPos pos; final int shape;
+        final double fx, fy, fz;              // flame point (FLAME)
+        final float r, g, b, intensity, flicker;
+        final TextureAtlasSprite sprite;      // CUBE/TOP: the block's own texture
+        Light(BlockPos pos, int shape, double fx, double fy, double fz, float r, float g, float b,
+              float intensity, float flicker, TextureAtlasSprite sprite) {
+            this.pos = pos; this.shape = shape; this.fx = fx; this.fy = fy; this.fz = fz;
+            this.r = r; this.g = g; this.b = b; this.intensity = intensity; this.flicker = flicker; this.sprite = sprite;
         }
     }
 
@@ -56,31 +59,28 @@ public class LumenWorldGlow {
         OreFace(BlockPos pos, EnumFacing face, OreMasks.Mask mask) { this.pos = pos; this.face = face; this.mask = mask; }
     }
 
-    private List<Glow> glows = new ArrayList<>();
+    private List<Light> lights = new ArrayList<>();
     private List<OreFace> ores = new ArrayList<>();
     private int tickCounter;
     public static int statGlows, statOreFaces;
     private final OreMasks oreMasks = new OreMasks();
-
-    public void clearCaches() { oreMasks.clear(); }
 
     // ---------------------------------------------------------------- scanning
 
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent e) {
         if (e.phase != TickEvent.Phase.END) return;
-        if (mc.world == null || mc.player == null) { glows.clear(); ores.clear(); oreMasks.clear(); return; }
-        if (!LumenConfig.enabled || (!LumenConfig.blockGlow && !LumenConfig.emissiveOres)) { glows.clear(); ores.clear(); return; }
+        if (mc.world == null || mc.player == null) { lights.clear(); ores.clear(); oreMasks.clear(); return; }
+        if (!LumenConfig.enabled || (!LumenConfig.bloom && !LumenConfig.emissiveOres)) { lights.clear(); ores.clear(); return; }
         if (++tickCounter % 10 != 0) return;
         scan(mc.world, new BlockPos(mc.player));
     }
 
     private void scan(World world, BlockPos center) {
-        List<Glow> newGlows = new ArrayList<>();
+        List<Light> newLights = new ArrayList<>();
         List<OreFace> newOres = new ArrayList<>();
         BlockPos.MutableBlockPos p = new BlockPos.MutableBlockPos();
         BlockPos.MutableBlockPos n = new BlockPos.MutableBlockPos();
-        int maxOreFaces = 600;
 
         for (int dx = -RADIUS_XZ; dx <= RADIUS_XZ; dx++) {
             for (int dz = -RADIUS_XZ; dz <= RADIUS_XZ; dz++) {
@@ -92,180 +92,97 @@ public class LumenWorldGlow {
                     p.setPos(x, y, z);
                     IBlockState state = world.getBlockState(p);
                     if (state.getMaterial() == Material.AIR) continue;
-                    Block block = state.getBlock();
 
-                    if (LumenConfig.blockGlow) {
+                    if (LumenConfig.bloom) {
                         int light = state.getLightValue(world, p);
                         if (light >= 7) {
-                            Glow g = makeGlow(world, p, state, block, light);
-                            if (g != null) newGlows.add(g);
+                            Light l = makeLight(world, p.toImmutable(), state, light);
+                            if (l != null) newLights.add(l);
                         }
                     }
-                    if (LumenConfig.emissiveOres && newOres.size() < maxOreFaces) {
+                    if (LumenConfig.emissiveOres && newOres.size() < 800) {
                         OreMasks.Mask mask = oreMasks.get(state);
                         if (mask != null) {
-                            boolean exposed = false;
                             for (EnumFacing f : EnumFacing.VALUES) {
                                 n.setPos(p).move(f);
-                                if (!world.getBlockState(n).isOpaqueCube()) {
-                                    newOres.add(new OreFace(p.toImmutable(), f, mask));
-                                    exposed = true;
-                                }
-                            }
-                            if (exposed && LumenConfig.blockGlow) {
-                                newGlows.add(new Glow(x + 0.5, y + 0.5, z + 0.5,
-                                        mask.r, mask.g, mask.b, 0.9f, 0f, 0.22f));
+                                if (!world.getBlockState(n).isOpaqueCube()) newOres.add(new OreFace(p.toImmutable(), f, mask));
                             }
                         }
                     }
                 }
             }
         }
-
-        // keep the nearest halos only
-        final double px = center.getX() + 0.5, py = center.getY() + 1.5, pz = center.getZ() + 0.5;
-        newGlows.sort((a, b) -> Double.compare(dist2(a, px, py, pz), dist2(b, px, py, pz)));
-        int max = LumenConfig.blockGlowMaxLights;
-        if (newGlows.size() > max) newGlows = new ArrayList<>(newGlows.subList(0, max));
-        glows = newGlows;
+        // nearest first, capped
+        final int px = center.getX(), py = center.getY(), pz = center.getZ();
+        newLights.sort((a, b) -> Integer.compare(d2(a.pos, px, py, pz), d2(b.pos, px, py, pz)));
+        int max = LumenConfig.bloomMaxLights;
+        if (newLights.size() > max) newLights = new ArrayList<>(newLights.subList(0, max));
+        lights = newLights;
         ores = newOres;
-        statGlows = glows.size();
+        statGlows = lights.size();
         statOreFaces = ores.size();
     }
 
-    private static double dist2(Glow g, double x, double y, double z) {
-        double dx = g.x - x, dy = g.y - y, dz = g.z - z;
+    private static int d2(BlockPos a, int x, int y, int z) {
+        int dx = a.getX() - x, dy = a.getY() - y, dz = a.getZ() - z;
         return dx * dx + dy * dy + dz * dz;
     }
 
-    private Glow makeGlow(World world, BlockPos p, IBlockState state, Block block, int light) {
-        double x = p.getX() + 0.5, y = p.getY() + 0.5, z = p.getZ() + 0.5;
-        float r = 1.0f, g = 0.72f, b = 0.38f, size = 0.6f + light * 0.06f, flicker = 0f;
-        float alpha = 0.14f + light * 0.022f;
+    private Light makeLight(World world, BlockPos p, IBlockState state, int light) {
+        Block block = state.getBlock();
+        float k = light / 15f;
+        double cx = p.getX() + 0.5, cy = p.getY() + 0.5, cz = p.getZ() + 0.5;
 
-        if (block == Blocks.TORCH || block == Blocks.FIRE || block == Blocks.LIT_PUMPKIN
-                || block == Blocks.LIT_FURNACE) {
-            r = 1.0f; g = 0.66f; b = 0.30f; flicker = 1f;
-            if (block == Blocks.TORCH) { y = p.getY() + 0.72; size = 1.35f; }
-        } else if (block == Blocks.LAVA || block == Blocks.FLOWING_LAVA) {
-            // only lava with an open top: a lake of lava would otherwise eat every halo slot
-            if (world.getBlockState(p.up()).getMaterial() == Material.LAVA) return null;
-            r = 1.0f; g = 0.45f; b = 0.12f; y = p.getY() + 0.9; size = 1.7f; flicker = 0.5f; alpha *= 0.8f;
-        } else if (block == Blocks.GLOWSTONE || block == Blocks.LIT_REDSTONE_LAMP) {
-            r = 1.0f; g = 0.82f; b = 0.50f; size = 1.9f;
-        } else if (block == Blocks.SEA_LANTERN || block == Blocks.BEACON || block == Blocks.END_ROD) {
-            r = 0.72f; g = 0.90f; b = 1.0f; size = 1.8f;
-        } else if (block == Blocks.REDSTONE_TORCH || block == Blocks.LIT_REDSTONE_ORE
-                || block == Blocks.POWERED_REPEATER || block == Blocks.POWERED_COMPARATOR) {
-            r = 1.0f; g = 0.20f; b = 0.10f; size = 0.9f;
-            if (block == Blocks.REDSTONE_TORCH) y = p.getY() + 0.65;
-        } else if (block == Blocks.PORTAL || block == Blocks.END_PORTAL || block == Blocks.ENDER_CHEST) {
-            r = 0.65f; g = 0.30f; b = 1.0f; size = 1.4f; alpha *= 0.7f;
-        } else if (block == Blocks.MAGMA) {
-            r = 1.0f; g = 0.40f; b = 0.10f; size = 1.2f; alpha *= 0.6f;
+        if (block instanceof BlockTorch) {
+            boolean redstone = block == Blocks.REDSTONE_TORCH;
+            double fx = cx, fy = p.getY() + 0.7, fz = cz;
+            EnumFacing facing = state.getValue(BlockTorch.FACING);
+            if (facing.getAxis().isHorizontal()) {   // wall torch: flame leans away from the wall
+                EnumFacing opp = facing.getOpposite();
+                fx += 0.27 * opp.getXOffset(); fy += 0.22; fz += 0.27 * opp.getZOffset();
+            }
+            return redstone
+                    ? new Light(p, FLAME, fx, fy - 0.05, fz, 1.0f, 0.15f, 0.08f, 0.7f, 0f, null)
+                    : new Light(p, FLAME, fx, fy, fz, 1.0f, 0.62f, 0.25f, 1.0f, 1f, null);
         }
-
-        // halos are mostly a dark-area effect: fade them where daylight already reaches
-        float sky = world.getLightFor(EnumSkyBlock.SKY, p.up()) / 15f;
-        float day = sky * world.getSunBrightness(1f);
-        alpha *= 1f - 0.85f * MathHelper.clamp((day - 0.2f) / 0.6f, 0f, 1f);
-        if (alpha <= 0.01f) return null;
-        return new Glow(x, y, z, r, g, b, size, flicker, alpha);
+        if (block == Blocks.FIRE) {
+            return new Light(p, FLAME, cx, p.getY() + 0.35, cz, 1.0f, 0.5f, 0.15f, 1.0f, 1f, null);
+        }
+        if (block == Blocks.LAVA || block == Blocks.FLOWING_LAVA) {
+            if (world.getBlockState(p.up()).getMaterial() == Material.LAVA) return null; // only the surface
+            return new Light(p, TOP, 0, 0, 0, 1.0f, 0.55f, 0.25f, 0.45f, 0.4f, sprite(state));
+        }
+        if (!state.isFullCube()) {   // lanterns from mods, end rods, brewing stands...: glow at the center
+            return new Light(p, FLAME, cx, cy, cz, 1.0f, 0.8f, 0.55f, 0.5f * k, 0f, null);
+        }
+        // full light blocks (glowstone, sea lantern, lamps, jack o'lanterns, magma...): their own texture
+        float r = 1f, g = 0.9f, b = 0.75f, intensity = 0.4f * k;
+        if (block == Blocks.SEA_LANTERN || block == Blocks.BEACON) { r = 0.85f; g = 0.95f; b = 1f; }
+        else if (block == Blocks.MAGMA) { intensity = 0.35f; }
+        return new Light(p, CUBE, 0, 0, 0, r, g, b, intensity, 0f, sprite(state));
     }
 
-    // ---------------------------------------------------------------- rendering
+    private TextureAtlasSprite sprite(IBlockState state) {
+        try {
+            return mc.getBlockRendererDispatcher().getBlockModelShapes().getTexture(state);
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
-    @SubscribeEvent
-    public void onRender(RenderWorldLastEvent e) {
-        if (!LumenConfig.enabled || mc.world == null) return;
+    // ---------------------------------------------------------------- visible ore overlay
+
+    public void renderOres(float pt) {
+        if (!LumenConfig.emissiveOres || ores.isEmpty() || mc.world == null) return;
         Entity view = mc.getRenderViewEntity();
         if (view == null) return;
-        float pt = e.getPartialTicks();
         double cx = view.lastTickPosX + (view.posX - view.lastTickPosX) * pt;
         double cy = view.lastTickPosY + (view.posY - view.lastTickPosY) * pt;
         double cz = view.lastTickPosZ + (view.posZ - view.lastTickPosZ) * pt;
-        float time = (mc.world.getTotalWorldTime() + pt);
+        float time = mc.world.getTotalWorldTime() + pt;
 
         LumenGl.prepare();
-        if (LumenConfig.emissiveOres && !ores.isEmpty()) drawOres(cx, cy, cz, time);
-        LumenGl.prepare();
-        if (LumenConfig.blockGlow) collectEntityGlows(view, pt);
-        if (LumenConfig.blockGlow && (!glows.isEmpty() || !entityGlows.isEmpty())) drawHalos(cx, cy, cz, time);
-        LumenGl.finish();
-    }
-
-    /** Halos that follow glowing entities every frame: dropped glowstone, burning mobs, blazes... */
-    private final List<Glow> entityGlows = new ArrayList<>();
-
-    private void collectEntityGlows(Entity view, float pt) {
-        entityGlows.clear();
-        boolean firstPerson = mc.gameSettings.thirdPersonView == 0;
-        for (Entity en : mc.world.loadedEntityList) {
-            if (entityGlows.size() >= 32) break;
-            if (en == view && firstPerson) continue;            // no halo stuck to your own face
-            if (en.getDistanceSq(view) > 24 * 24) continue;
-            int lum = LumenDynamicLights.luminance(en);
-            if (lum < 6) continue;
-            double x = en.lastTickPosX + (en.posX - en.lastTickPosX) * pt;
-            double y = en.lastTickPosY + (en.posY - en.lastTickPosY) * pt + en.height * 0.6;
-            double z = en.lastTickPosZ + (en.posZ - en.lastTickPosZ) * pt;
-            boolean fire = en.isBurning();
-            entityGlows.add(new Glow(x, y, z, 1.0f, fire ? 0.55f : 0.75f, fire ? 0.20f : 0.40f,
-                    0.5f + lum * 0.07f, fire ? 1f : 0.3f, 0.12f + lum * 0.02f));
-        }
-    }
-
-    private void drawHalos(double cx, double cy, double cz, float time) {
-        float rX = ActiveRenderInfo.getRotationX(), rZ = ActiveRenderInfo.getRotationZ();
-        float rYZ = ActiveRenderInfo.getRotationYZ(), rXY = ActiveRenderInfo.getRotationXY();
-        float rXZ = ActiveRenderInfo.getRotationXZ();
-        // billboard axes (same as vanilla particles)
-        double ax = rX, ay = 0, az = rZ;     // right
-        double bx = rYZ, by = rXZ, bz = rXY; // up
-        float strength = (float) LumenConfig.blockGlowStrength;
-
-        GlStateManager.disableTexture2D();
-        GlStateManager.disableLighting();
-        GlStateManager.disableAlpha();
-        GlStateManager.disableCull();
-        GlStateManager.enableBlend();
-        GlStateManager.blendFunc(SourceFactor.SRC_ALPHA, DestFactor.ONE);
-        GlStateManager.depthMask(false);
-        GlStateManager.shadeModel(GL11.GL_SMOOTH);
-
-        Tessellator tess = Tessellator.getInstance();
-        BufferBuilder buf = tess.getBuffer();
-        int seg = 16;
-        List<Glow> all = new ArrayList<>(glows.size() + entityGlows.size());
-        all.addAll(glows);
-        all.addAll(entityGlows);
-        for (Glow g : all) {
-            double x = g.x - cx, y = g.y - cy, z = g.z - cz;
-            double d = Math.sqrt(x * x + y * y + z * z);
-            float fade = MathHelper.clamp(1f - (float) d / (RADIUS_XZ + 4f), 0f, 1f);
-            float flick = 1f;
-            if (g.flicker > 0) {
-                float seed = (float) (g.x * 13.1 + g.z * 7.7 + g.y * 3.3);
-                flick = 1f - g.flicker * 0.12f * (0.5f + 0.5f * MathHelper.sin(time * 0.9f + seed)
-                        * MathHelper.sin(time * 0.37f + seed * 2f));
-            }
-            float a = g.alpha * fade * flick * strength;
-            if (a <= 0.003f) continue;
-            double s = g.size * flick * 1.25; // soft falloff reaches further, so a bit larger
-            GlowShapes.disc(tess, x, y, z, ax, ay, az, bx, by, bz, s, g.r, g.g, g.b, Math.min(a * 1.15f, 1f));
-        }
-
-        GlStateManager.depthMask(true);
-        GlStateManager.blendFunc(SourceFactor.SRC_ALPHA, DestFactor.ONE_MINUS_SRC_ALPHA);
-        GlStateManager.disableBlend();
-        GlStateManager.enableCull();
-        GlStateManager.enableAlpha();
         GlStateManager.enableTexture2D();
-        GlStateManager.shadeModel(GL11.GL_FLAT);
-    }
-
-    private void drawOres(double cx, double cy, double cz, float time) {
-        GlStateManager.enableTexture2D();   // unit 0 only; LumenGl.prepare() turned the lightmap unit off
         GlStateManager.disableLighting();
         GlStateManager.disableCull();
         GlStateManager.enableBlend();
@@ -275,64 +192,160 @@ public class LumenWorldGlow {
         GlStateManager.depthMask(false);
         GlStateManager.enablePolygonOffset();
         GlStateManager.doPolygonOffset(-1f, -10f);
+        drawOreFaces(cx, cy, cz, time, 1f);
+        GlStateManager.disablePolygonOffset();
+        GlStateManager.depthMask(true);
+        GlStateManager.disableBlend();
+        GlStateManager.enableCull();
+        LumenGl.finish();
+    }
 
+    private void drawOreFaces(double cx, double cy, double cz, float time, float brightness) {
         Tessellator tess = Tessellator.getInstance();
         BufferBuilder buf = tess.getBuffer();
-        // group faces by mask texture to keep texture binds low
-        Map<OreMasks.Mask, List<OreFace>> byMask = new java.util.IdentityHashMap<>();
+        Map<OreMasks.Mask, List<OreFace>> byMask = new IdentityHashMap<>();
         for (OreFace f : ores) byMask.computeIfAbsent(f.mask, k -> new ArrayList<>()).add(f);
-
         for (Map.Entry<OreMasks.Mask, List<OreFace>> en : byMask.entrySet()) {
             GlStateManager.bindTexture(en.getKey().textureId());
             buf.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
             for (OreFace f : en.getValue()) {
-                float pulse = 0.85f + 0.15f * MathHelper.sin(time * 0.08f
-                        + (f.pos.getX() * 3 + f.pos.getY() * 5 + f.pos.getZ() * 7));
-                emitFace(buf, f.pos.getX() - cx, f.pos.getY() - cy, f.pos.getZ() - cz, f.face, pulse);
+                float pulse = brightness * (0.85f + 0.15f * MathHelper.sin(time * 0.08f
+                        + (f.pos.getX() * 3 + f.pos.getY() * 5 + f.pos.getZ() * 7)));
+                emitFace(buf, f.pos.getX() - cx, f.pos.getY() - cy, f.pos.getZ() - cz, f.face, pulse, 0, 0, 1, 1);
             }
             tess.draw();
         }
-
-        GlStateManager.disablePolygonOffset();
-        GlStateManager.depthMask(true);
-        GlStateManager.alphaFunc(GL11.GL_GREATER, 0.1f);
-        GlStateManager.disableBlend();
-        GlStateManager.enableCull();
-        // (no enableLightmap here: leaving it on leaked into F1/F5 frames, where vanilla doesn't reset it)
-        GlStateManager.bindTexture(mc.getTextureMapBlocks().getGlTextureId());
     }
 
-    private static void emitFace(BufferBuilder buf, double x, double y, double z, EnumFacing f, float c) {
-        double e = 0.001; // tiny outward offset (plus polygon offset) against z-fighting
+    // ---------------------------------------------------------------- bloom sources
+
+    /** Draws everything that should bloom. Called by LumenBloom with additive blending set up. */
+    public void drawBloomSources(float pt) {
+        Entity view = mc.getRenderViewEntity();
+        if (view == null || mc.world == null) return;
+        double cx = view.lastTickPosX + (view.posX - view.lastTickPosX) * pt;
+        double cy = view.lastTickPosY + (view.posY - view.lastTickPosY) * pt;
+        double cz = view.lastTickPosZ + (view.posZ - view.lastTickPosZ) * pt;
+        float time = mc.world.getTotalWorldTime() + pt;
+        Tessellator tess = Tessellator.getInstance();
+        BufferBuilder buf = tess.getBuffer();
+
+        // 1) textured light blocks and lava surfaces, in their own texture
+        GlStateManager.enableTexture2D();
+        mc.getTextureManager().bindTexture(net.minecraft.client.renderer.texture.TextureMap.LOCATION_BLOCKS_TEXTURE);
+        buf.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
+        for (Light l : lights) {
+            if (l.shape == FLAME || l.sprite == null) continue;
+            float c = l.intensity * flicker(l, time);
+            double x = l.pos.getX() - cx, y = l.pos.getY() - cy, z = l.pos.getZ() - cz;
+            float u0 = l.sprite.getMinU(), v0 = l.sprite.getMinV(), u1 = l.sprite.getMaxU(), v1 = l.sprite.getMaxV();
+            if (l.shape == TOP) {
+                emitFaceTinted(buf, x, y - 0.1, z, EnumFacing.UP, l.r * c, l.g * c, l.b * c, u0, v0, u1, v1);
+            } else {
+                for (EnumFacing f : EnumFacing.VALUES) emitFaceTinted(buf, x, y, z, f, l.r * c, l.g * c, l.b * c, u0, v0, u1, v1);
+            }
+        }
+        tess.draw();
+
+        // 2) emissive ores bloom softly in their own colors
+        if (LumenConfig.emissiveOres && !ores.isEmpty()) drawOreFaces(cx, cy, cz, time, 0.55f);
+
+        // 3) flames and other small lights: small bright cubes (the blur turns them into round glows)
+        GlStateManager.disableTexture2D();
+        buf.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
+        for (Light l : lights) {
+            if (l.shape != FLAME) continue;
+            float c = l.intensity * flicker(l, time);
+            cube(buf, l.fx - cx, l.fy - cy, l.fz - cz, 0.09, l.r * c, l.g * c, l.b * c);
+        }
+        // glowing / burning entities (dropped glowstone, blazes, mobs on fire, held torches in 3rd person)
+        boolean firstPerson = mc.gameSettings.thirdPersonView == 0;
+        int count = 0;
+        for (Entity en : mc.world.loadedEntityList) {
+            if (count >= 48) break;
+            if (en == view && firstPerson) continue;
+            if (en.getDistanceSq(view) > 32 * 32) continue;
+            int lum = LumenDynamicLights.luminance(en);
+            if (lum < 6) continue;
+            count++;
+            double x = en.lastTickPosX + (en.posX - en.lastTickPosX) * pt - cx;
+            double y = en.lastTickPosY + (en.posY - en.lastTickPosY) * pt + en.height * 0.55 - cy;
+            double z = en.lastTickPosZ + (en.posZ - en.lastTickPosZ) * pt - cz;
+            boolean fire = en.isBurning();
+            float c = lum / 15f * (fire ? 0.8f : 0.7f);
+            double size = fire ? Math.max(0.15, en.width * 0.35) : 0.12;
+            cube(buf, x, y, z, size, c, c * (fire ? 0.5f : 0.75f), c * (fire ? 0.15f : 0.4f));
+        }
+        // fireflies
+        LumenParticles.emitFireflyBloom(buf, cx, cy, cz, pt);
+        tess.draw();
+        GlStateManager.enableTexture2D();
+    }
+
+    private static float flicker(Light l, float time) {
+        if (l.flicker <= 0) return 1f;
+        float seed = l.pos.getX() * 13.1f + l.pos.getZ() * 7.7f + l.pos.getY() * 3.3f;
+        return 1f - l.flicker * 0.15f * (0.5f + 0.5f * MathHelper.sin(time * 0.9f + seed) * MathHelper.sin(time * 0.37f + seed * 2f));
+    }
+
+    static void cube(BufferBuilder buf, double x, double y, double z, double h, float r, float g, float b) {
+        double x0 = x - h, x1 = x + h, y0 = y - h, y1 = y + h, z0 = z - h, z1 = z + h;
+        // 6 faces
+        q(buf, x0, y1, z0, x0, y1, z1, x1, y1, z1, x1, y1, z0, r, g, b);
+        q(buf, x0, y0, z1, x0, y0, z0, x1, y0, z0, x1, y0, z1, r, g, b);
+        q(buf, x1, y1, z0, x1, y0, z0, x0, y0, z0, x0, y1, z0, r, g, b);
+        q(buf, x0, y1, z1, x0, y0, z1, x1, y0, z1, x1, y1, z1, r, g, b);
+        q(buf, x0, y1, z0, x0, y0, z0, x0, y0, z1, x0, y1, z1, r, g, b);
+        q(buf, x1, y1, z1, x1, y0, z1, x1, y0, z0, x1, y1, z0, r, g, b);
+    }
+
+    private static void q(BufferBuilder buf, double ax, double ay, double az, double bx, double by, double bz,
+                          double cx, double cy, double cz, double dx, double dy, double dz, float r, float g, float b) {
+        buf.pos(ax, ay, az).color(r, g, b, 1f).endVertex();
+        buf.pos(bx, by, bz).color(r, g, b, 1f).endVertex();
+        buf.pos(cx, cy, cz).color(r, g, b, 1f).endVertex();
+        buf.pos(dx, dy, dz).color(r, g, b, 1f).endVertex();
+    }
+
+    // ---------------------------------------------------------------- block faces
+
+    private static void emitFace(BufferBuilder buf, double x, double y, double z, EnumFacing f, float c,
+                                 float u0, float v0, float u1, float v1) {
+        emitFaceTinted(buf, x, y, z, f, c, c, c, u0, v0, u1, v1);
+    }
+
+    private static void emitFaceTinted(BufferBuilder buf, double x, double y, double z, EnumFacing f,
+                                       float r, float g, float b, float u0, float v0, float u1, float v1) {
+        double e = 0.002;
         switch (f) {
             case UP:
                 y += 1 + e;
-                v(buf, x, y, z, 0, 0, c); v(buf, x, y, z + 1, 0, 1, c);
-                v(buf, x + 1, y, z + 1, 1, 1, c); v(buf, x + 1, y, z, 1, 0, c); break;
+                v(buf, x, y, z, u0, v0, r, g, b); v(buf, x, y, z + 1, u0, v1, r, g, b);
+                v(buf, x + 1, y, z + 1, u1, v1, r, g, b); v(buf, x + 1, y, z, u1, v0, r, g, b); break;
             case DOWN:
                 y -= e;
-                v(buf, x, y, z + 1, 0, 0, c); v(buf, x, y, z, 0, 1, c);
-                v(buf, x + 1, y, z, 1, 1, c); v(buf, x + 1, y, z + 1, 1, 0, c); break;
+                v(buf, x, y, z + 1, u0, v0, r, g, b); v(buf, x, y, z, u0, v1, r, g, b);
+                v(buf, x + 1, y, z, u1, v1, r, g, b); v(buf, x + 1, y, z + 1, u1, v0, r, g, b); break;
             case NORTH:
                 z -= e;
-                v(buf, x + 1, y + 1, z, 0, 0, c); v(buf, x + 1, y, z, 0, 1, c);
-                v(buf, x, y, z, 1, 1, c); v(buf, x, y + 1, z, 1, 0, c); break;
+                v(buf, x + 1, y + 1, z, u0, v0, r, g, b); v(buf, x + 1, y, z, u0, v1, r, g, b);
+                v(buf, x, y, z, u1, v1, r, g, b); v(buf, x, y + 1, z, u1, v0, r, g, b); break;
             case SOUTH:
                 z += 1 + e;
-                v(buf, x, y + 1, z, 0, 0, c); v(buf, x, y, z, 0, 1, c);
-                v(buf, x + 1, y, z, 1, 1, c); v(buf, x + 1, y + 1, z, 1, 0, c); break;
+                v(buf, x, y + 1, z, u0, v0, r, g, b); v(buf, x, y, z, u0, v1, r, g, b);
+                v(buf, x + 1, y, z, u1, v1, r, g, b); v(buf, x + 1, y + 1, z, u1, v0, r, g, b); break;
             case WEST:
                 x -= e;
-                v(buf, x, y + 1, z, 0, 0, c); v(buf, x, y, z, 0, 1, c);
-                v(buf, x, y, z + 1, 1, 1, c); v(buf, x, y + 1, z + 1, 1, 0, c); break;
+                v(buf, x, y + 1, z, u0, v0, r, g, b); v(buf, x, y, z, u0, v1, r, g, b);
+                v(buf, x, y, z + 1, u1, v1, r, g, b); v(buf, x, y + 1, z + 1, u1, v0, r, g, b); break;
             case EAST:
                 x += 1 + e;
-                v(buf, x, y + 1, z + 1, 0, 0, c); v(buf, x, y, z + 1, 0, 1, c);
-                v(buf, x, y, z, 1, 1, c); v(buf, x, y + 1, z, 1, 0, c); break;
+                v(buf, x, y + 1, z + 1, u0, v0, r, g, b); v(buf, x, y, z + 1, u0, v1, r, g, b);
+                v(buf, x, y, z, u1, v1, r, g, b); v(buf, x, y + 1, z, u1, v0, r, g, b); break;
         }
     }
 
-    private static void v(BufferBuilder buf, double x, double y, double z, double u, double vv, float c) {
-        buf.pos(x, y, z).tex(u, vv).color(c, c, c, 1f).endVertex();
+    private static void v(BufferBuilder buf, double x, double y, double z, double u, double vv, float r, float g, float b) {
+        buf.pos(x, y, z).tex(u, vv).color(r, g, b, 1f).endVertex();
     }
 }

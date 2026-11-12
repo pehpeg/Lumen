@@ -29,6 +29,14 @@ import org.lwjgl.opengl.GL11;
 public class LumenRenderer {
 
     private final Minecraft mc = Minecraft.getMinecraft();
+    private final LumenBloom bloom = new LumenBloom();
+    private final LumenWorldGlow worldGlow;
+    private final LumenParticles particles;
+    private final LumenAtmosphere atmosphere;
+
+    public LumenRenderer(LumenWorldGlow worldGlow, LumenParticles particles, LumenAtmosphere atmosphere) {
+        this.worldGlow = worldGlow; this.particles = particles; this.atmosphere = atmosphere;
+    }
 
     // ---------------------------------------------------------------- helpers
 
@@ -61,9 +69,11 @@ public class LumenRenderer {
     public void onKey(InputEvent.KeyInputEvent e) {
         if (Lumen.toggleKey != null && Lumen.toggleKey.isPressed()) {
             LumenConfig.enabled = !LumenConfig.enabled;
+            // rebuild visible chunks right away so shadows and dynamic lights switch instantly
+            if (mc.renderGlobal != null && mc.world != null) mc.renderGlobal.loadRenderers();
             if (mc.player != null) {
                 mc.player.sendStatusMessage(new TextComponentString(
-                        "Lumen: " + (LumenConfig.enabled ? "§aON" : "§cOFF")), true);
+                        "Lumen: " + (LumenConfig.enabled ? "\u00a7aON" : "\u00a7cOFF (vanilla)")), true);
             }
         }
     }
@@ -73,10 +83,16 @@ public class LumenRenderer {
     @SubscribeEvent
     public void onWorldLast(RenderWorldLastEvent e) {
         if (!active()) return;
+        float pt = e.getPartialTicks();
+        // one fixed order every frame: sky, scene overlays, bloom, then grading over everything
         LumenGl.prepare();
-        if (mc.world.provider.isSurfaceWorld()) drawSkyGlow(e.getPartialTicks());
+        if (mc.world.provider.isSurfaceWorld()) drawSkyGlow(pt);
+        if (worldGlow != null) worldGlow.renderOres(pt);
+        if (particles != null) particles.renderFireflies(pt);
+        if (atmosphere != null) { LumenGl.prepare(); atmosphere.renderStars(pt); }
+        if (LumenConfig.bloom && worldGlow != null) bloom.render(pt, worldGlow::drawBloomSources);
         LumenGl.prepare();
-        drawScreenEffects(e.getPartialTicks());
+        drawScreenEffects(pt);
         LumenGl.finish();
     }
 
@@ -132,12 +148,23 @@ public class LumenRenderer {
     // ---------------------------------------------------------------- sun occlusion + lens flare
 
     /** 0 = sun hidden behind blocks, 1 = clear line of sight. Smoothed. */
+    private Object hintWorld;
+    private boolean hintShown;
+
     private float sunVisible = 1f;
     private float sunVisibleTarget = 1f;
 
     @SubscribeEvent
     public void onTick(net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent e) {
         if (e.phase != net.minecraftforge.fml.common.gameevent.TickEvent.Phase.END) return;
+        if (mc.world != hintWorld && mc.player != null && mc.world != null) {
+            hintWorld = mc.world;
+            if (!hintShown && Lumen.toggleKey != null) {
+                hintShown = true;
+                mc.player.sendMessage(new TextComponentString("\u00a76Lumen\u00a7r: press \u00a7e"
+                        + Lumen.toggleKey.getDisplayName() + "\u00a7r to switch between Lumen and vanilla"));
+            }
+        }
         if (!active() || !mc.world.provider.isSurfaceWorld()) return;
         Entity view = mc.getRenderViewEntity();
         if (view == null) return;

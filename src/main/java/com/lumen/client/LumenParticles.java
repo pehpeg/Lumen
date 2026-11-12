@@ -8,7 +8,6 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.Particle;
 import org.lwjgl.opengl.GL11;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraft.entity.Entity;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.renderer.Tessellator;
@@ -133,12 +132,31 @@ public class LumenParticles {
         }
     }
 
-    @SubscribeEvent
-    public void onRender(RenderWorldLastEvent e) {
+    private static LumenParticles instance;
+    public LumenParticles() { instance = this; }
+
+    /** Firefly cores for the bloom pass (tiny bright cubes; the blur makes them glow). */
+    static void emitFireflyBloom(BufferBuilder buf, double cx, double cy, double cz, float pt) {
+        if (instance == null || !LumenConfig.fireflies) return;
+        for (Fly f : instance.flies) {
+            float a = instance.flyAlpha(f, pt);
+            if (a <= 0.02f) continue;
+            double x = f.px + (f.x - f.px) * pt - cx, y = f.py + (f.y - f.py) * pt - cy, z = f.pz + (f.z - f.pz) * pt - cz;
+            LumenWorldGlow.cube(buf, x, y, z, 0.05, 0.75f * a, 1.0f * a, 0.3f * a);
+        }
+    }
+
+    private float flyAlpha(Fly f, float pt) {
+        float life = (f.age + pt) / f.life;
+        float edge = Math.min(1f, Math.min(life * 6f, (1f - life) * 6f));
+        float pulse = 0.5f + 0.5f * MathHelper.sin((f.age + pt) * 0.12f + f.phase);
+        return edge * (0.15f + 0.85f * pulse * pulse);
+    }
+
+    public void renderFireflies(float pt) {
         if (flies.isEmpty() || !LumenConfig.enabled) return;
         Entity view = mc.getRenderViewEntity();
         if (view == null) return;
-        float pt = e.getPartialTicks();
         double cx = view.lastTickPosX + (view.posX - view.lastTickPosX) * pt;
         double cy = view.lastTickPosY + (view.posY - view.lastTickPosY) * pt;
         double cz = view.lastTickPosZ + (view.posZ - view.lastTickPosZ) * pt;
@@ -157,13 +175,10 @@ public class LumenParticles {
         Tessellator tess = Tessellator.getInstance();
         BufferBuilder buf = tess.getBuffer();
         for (Fly f : flies) {
-            float life = (f.age + pt) / f.life;
-            float edge = Math.min(1f, Math.min(life * 6f, (1f - life) * 6f));
-            float pulse = 0.5f + 0.5f * MathHelper.sin((f.age + pt) * 0.12f + f.phase);
-            float a = edge * (0.15f + 0.85f * pulse * pulse);
+            float a = flyAlpha(f, pt);
             if (a <= 0.01f) continue;
             double x = f.px + (f.x - f.px) * pt - cx, y = f.py + (f.y - f.py) * pt - cy, z = f.pz + (f.z - f.pz) * pt - cz;
-            fan(buf, tess, x, y, z, ax, az, bx, by, bz, 0.55, 0.75f, 1.0f, 0.25f, 0.45f * a); // halo
+            fan(buf, tess, x, y, z, ax, az, bx, by, bz, 0.30, 0.75f, 1.0f, 0.25f, 0.30f * a); // soft halo (bloom adds the rest)
             fan(buf, tess, x, y, z, ax, az, bx, by, bz, 0.06, 0.95f, 1.0f, 0.60f, a);         // bright core
         }
         GlStateManager.depthMask(true);
