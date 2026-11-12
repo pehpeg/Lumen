@@ -43,6 +43,7 @@ public class ColoredLight {
     }
 
     private final Map<String, Mesh> meshes = new HashMap<>();
+    private static final int MAX_LIGHTS = 48;
     private World world;
     private int dayBucket = -1;
     public static int statMeshes, statQuads, statBuildsPerSec;
@@ -55,8 +56,22 @@ public class ColoredLight {
         World w = mc.world;
         if (w != world) { clear(); world = w; }
         if (w == null) return;
-        Set<String> wanted = new HashSet<>();
+        // merge same-colored lights that sit close together (a lava lake is one light, not hundreds),
+        // then keep the nearest ones
+        Map<String, SectionScanner.ColorLight> clusters = new HashMap<>();
         for (SectionScanner.ColorLight l : statics) {
+            String c = (l.pos.getX() >> 2) + "," + (l.pos.getY() >> 2) + "," + (l.pos.getZ() >> 2) + "," + l.rgb;
+            SectionScanner.ColorLight prev = clusters.get(c);
+            if (prev == null || prev.level < l.level) clusters.put(c, l);
+        }
+        List<SectionScanner.ColorLight> merged = new ArrayList<>(clusters.values());
+        if (mc.player != null && merged.size() > MAX_LIGHTS) {
+            final BlockPos pp = new BlockPos(mc.player);
+            merged.sort((a, b) -> Double.compare(a.pos.distanceSq(pp), b.pos.distanceSq(pp)));
+            merged = merged.subList(0, MAX_LIGHTS);
+        }
+        Set<String> wanted = new HashSet<>();
+        for (SectionScanner.ColorLight l : merged) {
             String k = id(l.pos.toLong(), l.level, l.rgb);
             wanted.add(k);
             if (!meshes.containsKey(k)) meshes.put(k, new Mesh(l.pos.toLong(), l.level, l.rgb));
@@ -157,7 +172,11 @@ public class ColoredLight {
         }
 
         float k = (float) LumenConfig.colored.strength;
+        // hue at constant brightness: drawn with 2x modulate (0.5 = unchanged), so the light's
+        // color can brighten one channel while dimming the others instead of only darkening
         float cr = ((m.rgb >> 16) & 0xFF) / 255f, cg = ((m.rgb >> 8) & 0xFF) / 255f, cb = (m.rgb & 0xFF) / 255f;
+        float lum = Math.max(0.05f, 0.3f * cr + 0.59f * cg + 0.11f * cb);
+        cr = Math.min(1.9f, cr / lum); cg = Math.min(1.9f, cg / lum); cb = Math.min(1.9f, cb / lum);
         Tessellator tess = Tessellator.getInstance();
         BufferBuilder buf = tess.getBuffer();
         if (m.list < 0) m.list = GLAllocation.generateDisplayLists(1);
@@ -188,7 +207,7 @@ public class ColoredLight {
                         if (v >= 0) { wsum += v; n++; }
                     }
                     float wv = n > 0 ? wsum / n : 0;
-                    float mr = 1f - k * wv * (1f - cr), mg = 1f - k * wv * (1f - cg), mb = 1f - k * wv * (1f - cb);
+                    float mr = 0.5f * (1f + k * wv * (cr - 1f)), mg = 0.5f * (1f + k * wv * (cg - 1f)), mb = 0.5f * (1f + k * wv * (cb - 1f));
                     // corner position on the face, nudged 0.002 out of the block
                     double px = ox + 0.5 + face.getXOffset() * 0.502 + (s1 * t1.getXOffset() + s2 * t2.getXOffset()) * 0.5;
                     double py = oy + 0.5 + face.getYOffset() * 0.502 + (s1 * t1.getYOffset() + s2 * t2.getYOffset()) * 0.5;

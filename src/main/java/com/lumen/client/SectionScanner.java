@@ -147,7 +147,8 @@ public class SectionScanner {
             p.setPos((cx << 4) + x, (cy << 4) + y, (cz << 4) + z);
             if (wantColor) {
                 int light = state.getLightValue(w, p);
-                if (light >= 5 && com.lumen.core.VirtualLights.emission(w, p) < light) {  // not one of our moving lights
+                boolean buried = state.getMaterial() == Material.LAVA && !w.isAirBlock(p.up());  // only lava surfaces
+                if (light >= 5 && !buried && com.lumen.core.VirtualLights.emission(w, p) < light) {  // not one of our moving lights
                     int rgb = colors.colorOf(state, w, p);
                     if (rgb != LightColors.WHITE) s.lights.add(new ColorLight(p.toImmutable(), light, rgb));
                 }

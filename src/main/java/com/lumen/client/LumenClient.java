@@ -177,10 +177,10 @@ public class LumenClient {
         GlStateManager.doPolygonOffset(-1f, -10f);
         GlStateManager.shadeModel(GL11.GL_SMOOTH);
 
-        // 1) multiply layers: shadows and colored light (no fog: it would tint the multiplier)
+        // 1) modulate layers: shadows and colored light (no fog: it would tint the multiplier)
         GlStateManager.disableFog();
         GlStateManager.enableBlend();
-        GlStateManager.blendFunc(SourceFactor.DST_COLOR, DestFactor.ZERO);
+        GlStateManager.blendFunc(SourceFactor.DST_COLOR, DestFactor.SRC_COLOR);   // 2x modulate: 0.5 = unchanged
         if (LumenConfig.shadows.enabled) shadows.render(cx, cy, cz);
         if (LumenConfig.colored.enabled) coloredLight.render(cx, cy, cz);
         GlStateManager.enableFog();

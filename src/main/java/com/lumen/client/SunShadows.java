@@ -274,7 +274,8 @@ public class SunShadows {
         for (int i = 0; i < v.length; i += 4) {
             float s = v[i + 3] * strength;
             // shade is lit by blue sky, not the sun: darker and a little cooler
-            buf.pos(v[i], v[i + 1], v[i + 2]).color(1f - s * 0.42f, 1f - s * 0.36f, 1f - s * 0.22f, 1f).endVertex();
+            // (2x modulate: 0.5 = unchanged)
+            buf.pos(v[i], v[i + 1], v[i + 2]).color(0.5f * (1f - s * 0.55f), 0.5f * (1f - s * 0.48f), 0.5f * (1f - s * 0.30f), 1f).endVertex();
         }
         tess.draw();
         GL11.glEndList();

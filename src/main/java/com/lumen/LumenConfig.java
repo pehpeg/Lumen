@@ -73,7 +73,7 @@ public class LumenConfig {
         public boolean enabled = true;
         @Config.Comment("How strongly light colors tint the world (0..1)")
         @Config.RangeDouble(min = 0, max = 1)
-        public double strength = 0.65;
+        public double strength = 0.8;
         @Config.Comment("Colors as 'modid:block=RRGGBB' (overrides the automatic color)")
         public String[] colors = {
                 "minecraft:torch=FF9A40", "minecraft:fire=FF8030", "minecraft:lava=FF6A20", "minecraft:flowing_lava=FF6A20",
@@ -93,7 +93,7 @@ public class LumenConfig {
         public boolean enabled = true;
         @Config.Comment("How dark full shadow is (0..1)")
         @Config.RangeDouble(min = 0, max = 1)
-        public double strength = 0.55;
+        public double strength = 0.75;
         @Config.Comment("Radius in chunks around you that gets shadows")
         @Config.RangeInt(min = 2, max = 16)
         public int radiusChunks = 6;

@@ -76,9 +76,8 @@ jobs:
           chmod +x gradlew
           ./gradlew prepareObfModsFolder prioritizeCoremods --no-daemon -q
           if [ "${{ matrix.setup }}" = "modpack" ]; then
-            cd run/obfuscated/mods
-            curl -sSLf -o Nothirium-1.12.2-0.4.9-beta.jar https://github.com/Meldexun/Nothirium/releases/download/v1.12.2-0.4.9-beta/Nothirium-1.12.2-0.4.9-beta.jar
-            curl -sSLf -o RenderLib-1.12.2-1.4.5.jar https://github.com/Meldexun/RenderLib/releases/download/v1.12.2-1.4.5/RenderLib-1.12.2-1.4.5.jar
+            curl -sSLf -o run/obfuscated/mods/Nothirium-1.12.2-0.4.9-beta.jar https://github.com/Meldexun/Nothirium/releases/download/v1.12.2-0.4.9-beta/Nothirium-1.12.2-0.4.9-beta.jar
+            curl -sSLf -o run/obfuscated/mods/RenderLib-1.12.2-1.4.5.jar https://github.com/Meldexun/RenderLib/releases/download/v1.12.2-1.4.5/RenderLib-1.12.2-1.4.5.jar
           fi
           ls run/obfuscated/mods
 

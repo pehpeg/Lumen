@@ -140,13 +140,13 @@ public class LumenAutoTest {
                 clearHands();
                 onServer(w -> w.setWorldTime(s.time));
                 try { s.setup.run(); } catch (Exception ex) { log(s.name + ": setup failed: " + ex); skipScene = true; }
+                LumenClient.resetTimers();
                 wait = s.settle;
                 phase = 1;
                 break;
             case 1:
                 if (skipScene) { sceneIndex++; phase = 0; break; }
                 look();
-                LumenClient.resetTimers();
                 pendingShot = s.name + "_lumen_on";     // Lumen turns off right after this shot
                 wait = 160;                              // let lights and overlays switch off
                 phase = 2;
