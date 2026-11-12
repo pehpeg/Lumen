@@ -30,7 +30,7 @@ public class LightColors {
 
     public void reloadConfig() {
         configured.clear();
-        cache.clear();
+        cache.clear();   // colors are cached with vibrance applied
         for (String s : LumenConfig.colored.colors) {
             String[] kv = s.split("=");
             if (kv.length != 2) continue;
@@ -43,14 +43,22 @@ public class LightColors {
     public void clearTextureCache() { cache.clear(); }
 
     public int colorOf(IBlockState state, IBlockAccess world, BlockPos pos) {
-        Integer c = configured.get(state.getBlock());
-        if (c != null) return c;
-        c = cache.get(state);
+        Integer c = cache.get(state);
         if (c == null) {
-            c = fromTexture(state);
+            Integer conf = configured.get(state.getBlock());
+            c = vivid(conf != null ? conf : fromTexture(state));
             cache.put(state, c);
         }
         return c;
+    }
+
+    /** Pushes a color toward its pure hue (keeps white white), so different lights read clearly apart. */
+    static int vivid(int rgb) {
+        if (rgb == WHITE) return WHITE;
+        float[] hsb = java.awt.Color.RGBtoHSB((rgb >> 16) & 0xFF, (rgb >> 8) & 0xFF, rgb & 0xFF, null);
+        if (hsb[1] < 0.05f) return WHITE;
+        float sat = (float) Math.min(1.0, hsb[1] * LumenConfig.colored.vibrance);
+        return java.awt.Color.HSBtoRGB(hsb[0], sat, 1f) & 0xFFFFFF;
     }
 
     private static int fromTexture(IBlockState state) {

@@ -100,6 +100,7 @@ public class SunShadows {
         float day = (float) Math.max(0, Math.min(1, (sy - 0.1) / 0.25)) * (1f - rain);
         int newDay = Math.round(day * 10);
 
+        statPending = pending.get();
         if (!nowActive) {
             if (active) clearLists();
             active = false;
@@ -170,12 +171,12 @@ public class SunShadows {
         // snapshot of the blocks the rays can cross (chunk references, as vanilla's chunk builders do)
         ChunkCache cache = new ChunkCache(w, new BlockPos(bx - dist, 0, bz - dist), new BlockPos(bx + 15 + dist, 255, bz + 15 + dist), 0);
         final double sx = sunX, sy = sunY, sz = sunZ;
-        final int myStep = step, gen = generation;
+        final int myStep = step, gen = generation, res = LumenConfig.shadows.resolution;
         pending.incrementAndGet();
         worker.submit(() -> {
             try {
                 long t0 = System.nanoTime();
-                float[] verts = trace(cache, bx, bz, heights, sx, sy, sz, dist);
+                float[] verts = trace(cache, bx, bz, heights, sx, sy, sz, dist, res);
                 statLastBuildMicros = (System.nanoTime() - t0) / 1000;
                 done.add(new Result(c, myStep, gen, verts));
             } catch (Throwable t) {
@@ -188,7 +189,7 @@ public class SunShadows {
 
     // ---------------------------------------------------------------- worker side
 
-    private static float[] trace(ChunkCache cache, int bx, int bz, int[] heights, double sx, double sy, double sz, int dist) {
+    private static float[] trace(ChunkCache cache, int bx, int bz, int[] heights, double sx, double sy, double sz, int dist, int res) {
         FloatList out = new FloatList();
         BlockPos.MutableBlockPos p = new BlockPos.MutableBlockPos();
         BlockPos.MutableBlockPos n = new BlockPos.MutableBlockPos();
@@ -204,49 +205,107 @@ public class SunShadows {
                     if (n.getY() > 255) continue;
                     if (cache.getBlockState(n).isOpaqueCube()) continue;
                     if (cache.getLightFor(EnumSkyBlock.SKY, n) < 12) continue;          // indoors / caves: no sun
-                    double dot = f.getXOffset() * sx + f.getYOffset() * sy + f.getZOffset() * sz;
-                    float lambert = (float) Math.max(0, Math.min(1, 0.45 + 1.1 * dot));
-                    EnumFacing t1 = ColoredLight.tangent1(f), t2 = ColoredLight.tangent2(f);
-                    float[] shade = new float[4];
-                    double[] cxyz = new double[12];
-                    float maxShade = 0;
-                    for (int c = 0; c < 4; c++) {
-                        int s1 = (c == 0 || c == 3) ? -1 : 1, s2 = (c < 2) ? -1 : 1;
-                        double px = x + 0.5 + f.getXOffset() * 0.5 + (s1 * t1.getXOffset() + s2 * t2.getXOffset()) * 0.5;
-                        double py = y + 0.5 + f.getYOffset() * 0.5 + (s1 * t1.getYOffset() + s2 * t2.getYOffset()) * 0.5;
-                        double pz = z + 0.5 + f.getZOffset() * 0.5 + (s1 * t1.getZOffset() + s2 * t2.getZOffset()) * 0.5;
-                        if (dot <= 0) {
-                            // turned away from the sun: shaded, more so the further it faces away
-                            shade[c] = (float) Math.min(1.0, 0.55 - dot * 0.9);
-                        } else {
-                            float vis = visibility(cache, p, px + f.getXOffset() * 0.03, py + f.getYOffset() * 0.03,
-                                    pz + f.getZOffset() * 0.03, sx, sy, sz, dist);
-                            shade[c] = 1f - vis * lambert;
-                        }
-                        maxShade = Math.max(maxShade, shade[c]);
-                        cxyz[c * 3] = px - bx + f.getXOffset() * 0.002;
-                        cxyz[c * 3 + 1] = py + f.getYOffset() * 0.002;
-                        cxyz[c * 3 + 2] = pz - bz + f.getZOffset() * 0.002;
-                    }
-                    if (maxShade < 0.03f) continue;   // fully sunlit: nothing to draw
-                    for (int c = 0; c < 4; c++) out.add((float) cxyz[c * 3], (float) cxyz[c * 3 + 1], (float) cxyz[c * 3 + 2], shade[c]);
+                    emitFace(out, cache, p, x, y, z, f, bx, bz, sx, sy, sz, dist, res);
                 }
             }
         }
         return out.toArray();
     }
 
-    /** How much sun reaches this point: 0 = blocked, 1 = clear. Steps half a block at a time. */
+    /**
+     * One block face. Faces turned away from the sun get a single shaded quad. Sun-facing faces
+     * are sampled at corners + center first; if that's uniform the face is one quad (or nothing
+     * when fully lit), and only faces a shadow edge crosses are traced on a res x res grid.
+     */
+    private static void emitFace(FloatList out, ChunkCache cache, BlockPos.MutableBlockPos m, int x, int y, int z,
+                                 EnumFacing f, int bx, int bz, double sx, double sy, double sz, int dist, int res) {
+        double dot = f.getXOffset() * sx + f.getYOffset() * sy + f.getZOffset() * sz;
+        EnumFacing t1 = ColoredLight.tangent1(f), t2 = ColoredLight.tangent2(f);
+        // face origin: the block corner where both tangents are 0, on the face plane
+        double ox = x + (f.getXOffset() > 0 ? 1 : 0), oy = y + (f.getYOffset() > 0 ? 1 : 0), oz = z + (f.getZOffset() > 0 ? 1 : 0);
+        double nx = f.getXOffset(), ny = f.getYOffset(), nz = f.getZOffset();
+        if (dot <= 0) {
+            // turned away from the sun: shaded, more so the further it faces away
+            float sh = (float) Math.min(1.0, 0.55 - dot * 0.9);
+            quad(out, ox, oy, oz, t1, t2, nx, ny, nz, 0, 0, 1, 1, sh, sh, sh, sh, bx, bz);
+            return;
+        }
+        float lambert = (float) Math.max(0, Math.min(1, 0.45 + 1.1 * dot));
+        // quick probe: 4 corners + center
+        float c00 = shadeAt(cache, m, ox, oy, oz, t1, t2, nx, ny, nz, 0, 0, sx, sy, sz, dist, lambert);
+        float c10 = shadeAt(cache, m, ox, oy, oz, t1, t2, nx, ny, nz, 1, 0, sx, sy, sz, dist, lambert);
+        float c11 = shadeAt(cache, m, ox, oy, oz, t1, t2, nx, ny, nz, 1, 1, sx, sy, sz, dist, lambert);
+        float c01 = shadeAt(cache, m, ox, oy, oz, t1, t2, nx, ny, nz, 0, 1, sx, sy, sz, dist, lambert);
+        float mid = shadeAt(cache, m, ox, oy, oz, t1, t2, nx, ny, nz, 0.5, 0.5, sx, sy, sz, dist, lambert);
+        float lo = Math.min(Math.min(Math.min(c00, c10), Math.min(c11, c01)), mid);
+        float hi = Math.max(Math.max(Math.max(c00, c10), Math.max(c11, c01)), mid);
+        if (hi < 0.03f) return;                                   // fully sunlit: nothing to draw
+        if (res <= 1 || hi - lo < 0.04f) {                        // uniform: one quad
+            quad(out, ox, oy, oz, t1, t2, nx, ny, nz, 0, 0, 1, 1, c00, c10, c11, c01, bx, bz);
+            return;
+        }
+        // a shadow edge crosses this face: trace a finer grid for a crisp edge
+        float[] g = new float[(res + 1) * (res + 1)];
+        for (int i = 0; i <= res; i++) for (int j = 0; j <= res; j++) {
+            double u = i / (double) res, v = j / (double) res;
+            float val;
+            if (i == 0 && j == 0) val = c00; else if (i == res && j == 0) val = c10;
+            else if (i == res && j == res) val = c11; else if (i == 0 && j == res) val = c01;
+            else val = shadeAt(cache, m, ox, oy, oz, t1, t2, nx, ny, nz, u, v, sx, sy, sz, dist, lambert);
+            g[i * (res + 1) + j] = val;
+        }
+        for (int i = 0; i < res; i++) for (int j = 0; j < res; j++) {
+            float a = g[i * (res + 1) + j], b = g[(i + 1) * (res + 1) + j], c = g[(i + 1) * (res + 1) + j + 1], d = g[i * (res + 1) + j + 1];
+            if (Math.max(Math.max(a, b), Math.max(c, d)) < 0.03f) continue;
+            quad(out, ox, oy, oz, t1, t2, nx, ny, nz, i / (double) res, j / (double) res, (i + 1) / (double) res, (j + 1) / (double) res,
+                    a, b, c, d, bx, bz);
+        }
+    }
+
+    private static float shadeAt(ChunkCache cache, BlockPos.MutableBlockPos m, double ox, double oy, double oz,
+                                 EnumFacing t1, EnumFacing t2, double nx, double ny, double nz, double u, double v,
+                                 double sx, double sy, double sz, int dist, float lambert) {
+        // sample point on the face (kept a hair inside the edges), lifted slightly off the surface
+        u = Math.min(0.999, Math.max(0.001, u)); v = Math.min(0.999, Math.max(0.001, v));
+        double px = ox + t1.getXOffset() * u + t2.getXOffset() * v + nx * 0.01;
+        double py = oy + t1.getYOffset() * u + t2.getYOffset() * v + ny * 0.01;
+        double pz = oz + t1.getZOffset() * u + t2.getZOffset() * v + nz * 0.01;
+        return 1f - visibility(cache, m, px, py, pz, sx, sy, sz, dist) * lambert;
+    }
+
+    private static void quad(FloatList out, double ox, double oy, double oz, EnumFacing t1, EnumFacing t2,
+                             double nx, double ny, double nz, double u0, double v0, double u1, double v1,
+                             float s00, float s10, float s11, float s01, int bx, int bz) {
+        double lift = 0.002;
+        double[][] uv = {{u0, v0}, {u1, v0}, {u1, v1}, {u0, v1}};
+        float[] sh = {s00, s10, s11, s01};
+        for (int k = 0; k < 4; k++) {
+            double u = uv[k][0], v = uv[k][1];
+            out.add((float) (ox + t1.getXOffset() * u + t2.getXOffset() * v + nx * lift - bx),
+                    (float) (oy + t1.getYOffset() * u + t2.getYOffset() * v + ny * lift),
+                    (float) (oz + t1.getZOffset() * u + t2.getZOffset() * v + nz * lift - bz),
+                    sh[k]);
+        }
+    }
+
+    /** How much sun reaches this point (0 = blocked, 1 = clear): exact block-by-block ray walk. */
     private static float visibility(ChunkCache cache, BlockPos.MutableBlockPos m, double x, double y, double z,
-                                    double sx, double sy, double sz, int dist) {
+                                    double dx, double dy, double dz, int dist) {
+        int bx = (int) Math.floor(x), by = (int) Math.floor(y), bz = (int) Math.floor(z);
+        int stepX = dx > 0 ? 1 : -1, stepY = dy > 0 ? 1 : -1, stepZ = dz > 0 ? 1 : -1;
+        double tdx = dx != 0 ? Math.abs(1 / dx) : Double.MAX_VALUE;
+        double tdy = dy != 0 ? Math.abs(1 / dy) : Double.MAX_VALUE;
+        double tdz = dz != 0 ? Math.abs(1 / dz) : Double.MAX_VALUE;
+        double tx = dx != 0 ? (dx > 0 ? bx + 1 - x : x - bx) * tdx : Double.MAX_VALUE;
+        double ty = dy != 0 ? (dy > 0 ? by + 1 - y : y - by) * tdy : Double.MAX_VALUE;
+        double tz = dz != 0 ? (dz > 0 ? bz + 1 - z : z - bz) * tdz : Double.MAX_VALUE;
         float t = 1f;
-        int lx = Integer.MIN_VALUE, ly = 0, lz = 0;
-        for (double d = 0.25; d < dist; d += 0.5) {
-            double px = x + sx * d, py = y + sy * d, pz = z + sz * d;
-            if (py >= 256) break;
-            int bx = (int) Math.floor(px), by = (int) Math.floor(py), bz = (int) Math.floor(pz);
-            if (bx == lx && by == ly && bz == lz) continue;
-            lx = bx; ly = by; lz = bz;
+        while (true) {
+            double tNext;
+            if (tx < ty && tx < tz) { bx += stepX; tNext = tx; tx += tdx; }
+            else if (ty < tz) { by += stepY; tNext = ty; ty += tdy; }
+            else { bz += stepZ; tNext = tz; tz += tdz; }
+            if (tNext > dist || by > 255 || by < 0) return t;
             IBlockState st = cache.getBlockState(m.setPos(bx, by, bz));
             Material mat = st.getMaterial();
             if (mat == Material.AIR) continue;
@@ -256,7 +315,6 @@ public class SunShadows {
             else if (!mat.isLiquid()) t *= 0.92f;
             if (t < 0.06f) return 0f;
         }
-        return t;
     }
 
     // ---------------------------------------------------------------- main thread side

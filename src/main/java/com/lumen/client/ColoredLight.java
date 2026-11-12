@@ -168,7 +168,9 @@ public class ColoredLight {
             float share = Math.min(1f, predicted / (float) Math.max(actual, 1));
             float sky = w.getLightFor(EnumSkyBlock.SKY, p) * sun / 15f;
             float outshine = Math.max(0f, Math.min(1f, 1f - sky / Math.max(actual, 1)));
-            wt[i] = (float) Math.pow(predicted / 15f, 0.7) * share * outshine;
+            // gentle falloff so a light's color carries across its whole pool, and the color of the
+            // light that dominates a spot wins clearly over its neighbours
+            wt[i] = (float) Math.pow(predicted / 15f, 0.4) * (float) Math.pow(share, 1.5) * outshine;
         }
 
         float k = (float) LumenConfig.colored.strength;
@@ -176,7 +178,7 @@ public class ColoredLight {
         // color can brighten one channel while dimming the others instead of only darkening
         float cr = ((m.rgb >> 16) & 0xFF) / 255f, cg = ((m.rgb >> 8) & 0xFF) / 255f, cb = (m.rgb & 0xFF) / 255f;
         float lum = Math.max(0.05f, 0.3f * cr + 0.59f * cg + 0.11f * cb);
-        cr = Math.min(1.9f, cr / lum); cg = Math.min(1.9f, cg / lum); cb = Math.min(1.9f, cb / lum);
+        cr = Math.min(1.95f, cr / lum); cg = Math.min(1.95f, cg / lum); cb = Math.min(1.95f, cb / lum);
         Tessellator tess = Tessellator.getInstance();
         BufferBuilder buf = tess.getBuffer();
         if (m.list < 0) m.list = GLAllocation.generateDisplayLists(1);

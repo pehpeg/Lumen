@@ -73,15 +73,18 @@ public class LumenConfig {
         public boolean enabled = true;
         @Config.Comment("How strongly light colors tint the world (0..1)")
         @Config.RangeDouble(min = 0, max = 1)
-        public double strength = 0.8;
+        public double strength = 1.0;
         @Config.Comment("Colors as 'modid:block=RRGGBB' (overrides the automatic color)")
         public String[] colors = {
-                "minecraft:torch=FF9A40", "minecraft:fire=FF8030", "minecraft:lava=FF6A20", "minecraft:flowing_lava=FF6A20",
-                "minecraft:lit_pumpkin=FFA040", "minecraft:lit_furnace=FF9040", "minecraft:magma=FF5020",
-                "minecraft:redstone_torch=FF2A15", "minecraft:lit_redstone_ore=FF3020", "minecraft:lit_redstone_lamp=FFC070",
-                "minecraft:glowstone=FFD080", "minecraft:sea_lantern=B0E8FF", "minecraft:beacon=C0F0FF",
-                "minecraft:end_rod=F0E8FF", "minecraft:portal=A040FF", "minecraft:end_portal=6050FF",
-                "minecraft:end_gateway=6050FF", "minecraft:ender_chest=8060FF", "minecraft:brewing_stand=FFE080"};
+                "minecraft:torch=FF8A2A", "minecraft:fire=FF7020", "minecraft:lava=FF5A10", "minecraft:flowing_lava=FF5A10",
+                "minecraft:lit_pumpkin=FF9A2A", "minecraft:lit_furnace=FF8028", "minecraft:magma=FF4A10",
+                "minecraft:redstone_torch=FF1A0A", "minecraft:lit_redstone_ore=FF2010", "minecraft:lit_redstone_lamp=FFB048",
+                "minecraft:glowstone=FFC838", "minecraft:sea_lantern=50D8FF", "minecraft:beacon=70F0FF",
+                "minecraft:end_rod=E0B8FF", "minecraft:portal=9A30FF", "minecraft:end_portal=4A40FF",
+                "minecraft:end_gateway=4A40FF", "minecraft:ender_chest=7A40FF", "minecraft:brewing_stand=FFD850"};
+        @Config.Comment("How saturated light colors are (1 = as listed / as the texture, higher = more vivid)")
+        @Config.RangeDouble(min = 0.5, max = 3)
+        public double vibrance = 1.6;
         @Config.Comment("Scan radius (blocks) for colored light sources")
         @Config.RangeInt(min = 8, max = 64)
         public int radius = 32;
@@ -100,6 +103,10 @@ public class LumenConfig {
         @Config.Comment("How far (blocks) toward the sun to look for shadow casters")
         @Config.RangeInt(min = 8, max = 64)
         public int castDistance = 32;
+        @Config.Comment("Shadow edge sharpness: 1 = one sample per block face, 4 = quarter-block edges, 8 = eighth-block.\n"
+                + "Only faces a shadow edge crosses are refined, so higher values mostly cost background-thread time.")
+        @Config.RangeInt(min = 1, max = 8)
+        public int resolution = 4;
         @Config.Comment("Shadows move when the sun has moved this many degrees")
         @Config.RangeDouble(min = 2, max = 30)
         public double updateDegrees = 5;
