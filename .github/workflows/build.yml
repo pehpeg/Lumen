@@ -2,7 +2,7 @@ name: Build
 
 on:
   push:
-    branches-ignore: [test-results]
+    branches-ignore: [test-results, test-results-modpack, build-log]
   pull_request:
   workflow_dispatch:
 
@@ -25,7 +25,18 @@ jobs:
       - name: Build
         run: |
           chmod +x gradlew
-          ./gradlew build --no-daemon
+          set -o pipefail
+          ./gradlew build --no-daemon 2>&1 | tee build.log
+
+      - name: Publish build log on failure
+        if: failure()
+        run: |
+          mkdir -p /tmp/blog && cp build.log /tmp/blog/ && cd /tmp/blog
+          git init -q -b build-log
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add -A && git commit -qm "Build log for ${GITHUB_SHA}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git" build-log
 
       - name: Upload jar
         uses: actions/upload-artifact@v4
@@ -33,12 +44,18 @@ jobs:
           name: Lumen
           path: build/libs/*.jar
 
-  # Runs the real game on a virtual screen with software OpenGL, takes Lumen ON/OFF
-  # screenshots and pushes them to the test-results branch.
+  # Runs the real release jar in the real game on a virtual screen (software OpenGL), takes
+  # Lumen ON/OFF screenshots and pushes them to a results branch. Two setups:
+  #  - vanilla: Lumen + MixinBooter only
+  #  - modpack: plus Nothirium (replaces the chunk renderer, like Vintagium/Celeritas do)
   visual-test:
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        setup: [vanilla, modpack]
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v7
@@ -54,34 +71,39 @@ jobs:
           sudo apt-get update -q
           sudo apt-get install -y -q xvfb x11-xserver-utils libgl1-mesa-dri mesa-utils libxxf86vm1 libxtst6
 
+      - name: Prepare mods folder
+        run: |
+          chmod +x gradlew
+          ./gradlew prepareObfModsFolder prioritizeCoremods --no-daemon -q
+          if [ "${{ matrix.setup }}" = "modpack" ]; then
+            cd run/obfuscated/mods
+            curl -sSLf -o Nothirium-1.12.2-0.4.9-beta.jar https://github.com/Meldexun/Nothirium/releases/download/v1.12.2-0.4.9-beta/Nothirium-1.12.2-0.4.9-beta.jar
+            curl -sSLf -o RenderLib-1.12.2-1.4.5.jar https://github.com/Meldexun/RenderLib/releases/download/v1.12.2-1.4.5/RenderLib-1.12.2-1.4.5.jar
+          fi
+          ls run/obfuscated/mods
+
       - name: Run Minecraft auto-test
         env:
           LIBGL_ALWAYS_SOFTWARE: '1'
         run: |
-          chmod +x gradlew
-          mkdir -p run
-          # runObfClient runs the real release jar (reobfuscated, from the mods folder, with
-          # MixinBooter) exactly like a player's game - not the development classes
-          timeout 1800 xvfb-run -a -s "-screen 0 1280x720x24" \
-            ./gradlew runObfClient --no-daemon -Pextra_jvm_args="-Dlumen.autotest=true" 2>&1 | tee client-output.log | grep -E "LUMEN-AUTOTEST|Exception|Error|FATAL|OpenGL|Mixin" || true
+          timeout 2100 xvfb-run -a -s "-screen 0 1280x720x24" \
+            ./gradlew runObfClient -x prepareObfModsFolder -x prioritizeCoremods --no-daemon -Pextra_jvm_args="-Dlumen.autotest=true" 2>&1 \
+            | tee client-output.log | grep -E "LUMEN-AUTOTEST|Exception|Error|FATAL|Nothirium|Mixin" || true
 
-      - name: Publish results to test-results branch
+      - name: Publish results
         if: always()
         run: |
+          BRANCH=test-results; [ "${{ matrix.setup }}" = "modpack" ] && BRANCH=test-results-modpack
           mkdir -p /tmp/results
           SHOTS=$(dirname "$(find run -name lumen-report.txt | head -1)" 2>/dev/null)
           [ -n "$SHOTS" ] && cp "$SHOTS"/*.png "$SHOTS"/lumen-report.txt /tmp/results/ 2>/dev/null || true
           LOG=$(find run -path '*logs/latest.log' | head -1); [ -n "$LOG" ] && cp "$LOG" /tmp/results/latest.log || true
-          # what's inside the release jar (mixin config + refmap must be there)
-          JAR=$(ls build/libs/*.jar | grep -v -- '-dev\|-sources' | head -1)
-          { echo "jar: $JAR"; unzip -l "$JAR"; echo; echo "--- MANIFEST"; unzip -p "$JAR" META-INF/MANIFEST.MF; echo "--- refmap"; unzip -p "$JAR" mixins.lumen.refmap.json; } > /tmp/results/jar-contents.txt 2>&1 || true
-          find run -maxdepth 3 -name '*.jar' > /tmp/results/run-mods.txt 2>/dev/null || true
+          ls run/obfuscated/mods > /tmp/results/mods.txt 2>/dev/null || true
           tail -n 400 client-output.log > /tmp/results/client-output-tail.log 2>/dev/null || true
-          ls -la /tmp/results
           cd /tmp/results
-          git init -q -b test-results
+          git init -q -b "$BRANCH"
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
           git add -A
-          git commit -qm "Visual test results for ${GITHUB_SHA}"
-          git push -f "https://x-access-token:${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git" test-results
+          git commit -qm "Visual test results (${{ matrix.setup }}) for ${GITHUB_SHA}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git" "$BRANCH"

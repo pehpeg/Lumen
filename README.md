@@ -1,33 +1,33 @@
-# Lumen — shader look, no shaders (Forge 1.12.2)
+# Lumen (Forge 1.12.2)
 
-Client-only mod. Everything is drawn with a few fixed-function quads per frame and
-tweaks to vanilla fog: no framebuffers, no shadow pass, no GLSL. Expect ~0–2 FPS cost.
+Client-side lighting mod built to work in modpacks: every feature either goes through the game's
+own light engine or draws its own layer, so it works no matter which chunk renderer is installed
+(vanilla, OptiFine, Nothirium, Vintagium, Celeritas...).
 
-## What it does
-- **Shader-style lighting** – recolors Minecraft's lightmap (the 16×16 table every block's light comes from): warm orange torchlight, blue moonlit nights, deeper shadows. Costs 256 pixels per light update, nothing per block
-- **Sun glow + light rays** – soft halo and slowly turning light shafts, orange at sunrise/sunset, hidden by terrain and rain
-- **Moon halo** – faint blue glow at night
-- **Color grading** – warm amber golden hour, cool blue nights, grey-blue rain, teal underwater, warm Nether
-- **Atmospheric fog** – depth haze starts closer (configurable) and turns peach at dawn/dusk
-- **Vignette** – darkened screen edges
-- **Bloom** – real selective bloom: light blocks glow in their own texture, torch flames, lava, glowing ores, fireflies and burning mobs bleed soft light; drawn offscreen with the scene's depth so walls hide it, blurred by cheap downsampling (no shaders)
-- **Emissive ores** – ores glow in dark caves; glow masks are generated automatically by comparing each ore texture with stone/netherrack/end stone, so modded ores work too (coal excluded by default)
-- **Ambient particles** – fireflies on warm nights, leaves drifting from trees, dust motes in caves (respects the vanilla particle setting)
-- **Biome atmosphere** – green swamp haze, warm desert dust, cold snowy air and more via Forge's biome dictionary, blended smoothly as you walk
-- **Shooting stars** – now and then on clear nights
-- **Dynamic lights** – held torches, dropped glowing items, burning mobs, blazes and fireballs light up their surroundings, LambDynamicLights-style (raises block light during chunk meshing and re-meshes only the few sections around moving lights; speed setting SMOOTH / FAST / FASTEST)
-- **Lens flare** – subtle ghosts when looking toward the sun, hidden when terrain or trees block it
+## Features
+- **Dynamic lights** – held torches and light blocks, dropped glowing items, item frames, burning
+  mobs, blazes, fireballs, flaming weapons light up the world. Like Moving Light Sources, the light
+  goes into the real light data (so walls block it and every renderer shows it), but client-side:
+  no fake blocks are placed in your world. Extra items/entities are configurable.
+- **Emissive textures** – glowing ores. Uses resource-pack emissive textures in OptiFine format
+  (`diamond_ore_e.png` next to `diamond_ore.png`, any block, custom suffix via
+  `optifine/emissive.properties`); ores without one get an automatic glow mask. Reloads with packs.
+- **Colored light** – torches warm, redstone red, sea lanterns cool, lava orange, portals purple;
+  unlisted (modded) lamps get their color from their own texture. Uses the real light data, so color
+  only reaches where the light does, and fades where daylight outshines it.
+- **Sun shadows** – trees, buildings and cliffs cast shadows traced through the blocks on a
+  background thread; faces turned from the sun are shaded; shade is slightly cool like sky light.
+- **Light grading** – deeper contrast and blue moonlight via the lightmap.
+- **K** switches between Lumen and vanilla instantly (rebindable in Controls → Lumen). F3 shows a
+  `[Lumen]` status line with counts and CPU time.
 
-**Requires [MixinBooter](https://www.curseforge.com/minecraft/mc-mods/mixin-booter)** (used for dynamic lights).
-- **K** switches between Lumen and vanilla instantly (rebindable in Controls → Lumen); every effect has its own switch and strength in
-  Mods → Lumen → Config (or `config/lumen.cfg`)
+**Requires [MixinBooter](https://www.curseforge.com/minecraft/mc-mods/mixin-booter).**
 
-## Building
-Every push builds automatically on GitHub Actions — grab the jar from the latest run's
-**Artifacts** (Actions tab → latest "Build" → Lumen). Locally: `./gradlew build` (jar in `build/libs/`).
+## Building / testing
+Every push builds on GitHub Actions and runs the release jar in the real game twice — plain, and
+with Nothirium replacing the chunk renderer — taking Lumen on/off screenshots of test scenes. Results
+land on the `test-results` and `test-results-modpack` branches; the jar is under the run's
+**Artifacts**. Locally: `./gradlew build`.
 
 Build setup is CleanroomMC's TemplateDevEnv (RetroFuturaGradle), see `LICENSE-TemplateDevEnv`.
-
-## Compatibility
-- Works with OptiFine as long as OptiFine shaders are **off** (that's the point).
-- Fog tweaks are skipped underwater/in lava; grading/glow skip non-overworld skies where it'd look wrong.
+The dynamic-light approach is inspired by Moving Light Sources (GPL-3.0); no code was copied.
