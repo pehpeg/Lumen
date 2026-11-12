@@ -61,7 +61,7 @@ jobs:
           chmod +x gradlew
           mkdir -p run
           timeout 1800 xvfb-run -a -s "-screen 0 1280x720x24" \
-            ./gradlew runClient --no-daemon -Pextra_jvm_args="-Dlumen.autotest=true" 2>&1 | tee client-output.log | grep -E "LUMEN-AUTOTEST|Exception|Error|FATAL|OpenGL" || true
+            ./gradlew runClient --no-daemon -Pextra_jvm_args="-Dlumen.autotest=true -Dfml.coreMods.load=com.lumen.core.LumenLoadingPlugin" 2>&1 | tee client-output.log | grep -E "LUMEN-AUTOTEST|Exception|Error|FATAL|OpenGL" || true
 
       - name: Publish results to test-results branch
         if: always()

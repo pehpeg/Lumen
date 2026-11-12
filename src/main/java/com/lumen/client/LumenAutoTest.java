@@ -72,8 +72,12 @@ public class LumenAutoTest {
         s.beforeShot = () -> LumenAtmosphere.spawnStar(mc.player.getLookVec());
         scenes.add(s);
 
+        s = new Scene("4b_dynamic_lights", 18000, 180f, 35f, 160);
+        s.setup = this::setupDynamicLights;
+        scenes.add(s);
+
         s = new Scene("5_cave_ores", 18000, 0f, 8f, 260);
-        s.setup = () -> { mc.gameSettings.clouds = 2; buildOreCave(); };
+        s.setup = () -> { mc.gameSettings.clouds = 2; clearHands(); buildOreCave(); };
         scenes.add(s);
 
         s = new Scene("6_swamp", 6000, 45f, 0f, 420);
@@ -174,7 +178,8 @@ public class LumenAutoTest {
                 + " biome=" + mc.world.getBiome(new BlockPos(mc.player)).getBiomeName()
                 + " | lightmap grades=" + LumenLightmap.gradeCount + " failed=" + LumenLightmap.failed
                 + " | halos=" + LumenWorldGlow.statGlows + " oreFaces=" + LumenWorldGlow.statOreFaces
-                + " oreMasks=" + OreMasks.built + " | " + LumenParticles.stats);
+                + " oreMasks=" + OreMasks.built + " | " + LumenParticles.stats
+                + " | dynLights=" + LumenDynamicLights.statSources);
         if (onShot) LumenConfig.enabled = false;
         pendingShot = null;
     }
@@ -205,6 +210,33 @@ public class LumenAutoTest {
             BlockPos l = w.getTopSolidOrLiquidBlock(p.add(-2, 0, 11)).down();
             w.setBlockState(l, Blocks.LAVA.getDefaultState());
             w.setBlockState(l.east(), Blocks.LAVA.getDefaultState());
+        });
+    }
+
+    private void clearHands() {
+        onServer(w -> {
+            EntityPlayerMP p = w.getMinecraftServer().getPlayerList().getPlayers().get(0);
+            p.inventory.setInventorySlotContents(p.inventory.currentItem, net.minecraft.item.ItemStack.EMPTY);
+            p.inventoryContainer.detectAndSendChanges();
+        });
+    }
+
+    /** Night, away from placed torches, holding a torch, with a dropped glowstone ahead. */
+    private void setupDynamicLights() {
+        BlockPos at = spawn.add(0, 0, -30);
+        onServer(w -> {
+            BlockPos ground = w.getTopSolidOrLiquidBlock(at);
+            EntityPlayerMP p = w.getMinecraftServer().getPlayerList().getPlayers().get(0);
+            p.inventory.setInventorySlotContents(p.inventory.currentItem, new net.minecraft.item.ItemStack(Blocks.TORCH));
+            p.inventoryContainer.detectAndSendChanges();
+            p.capabilities.isFlying = true;
+            p.connection.setPlayerLocation(ground.getX() + 0.5, ground.getY() + 0.1, ground.getZ() + 0.5, 180f, 35f);
+            BlockPos drop = w.getTopSolidOrLiquidBlock(ground.add(-2, 0, -6));
+            net.minecraft.entity.item.EntityItem item = new net.minecraft.entity.item.EntityItem(w,
+                    drop.getX() + 0.5, drop.getY() + 0.2, drop.getZ() + 0.5, new net.minecraft.item.ItemStack(Blocks.GLOWSTONE));
+            item.setPickupDelay(32767);
+            item.motionX = item.motionY = item.motionZ = 0;
+            w.spawnEntity(item);
         });
     }
 

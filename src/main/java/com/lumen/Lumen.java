@@ -2,6 +2,7 @@ package com.lumen;
 
 import com.lumen.client.LumenAtmosphere;
 import com.lumen.client.LumenAutoTest;
+import com.lumen.client.LumenDynamicLights;
 import com.lumen.client.LumenParticles;
 import com.lumen.client.LumenWorldGlow;
 import com.lumen.client.LumenLightmap;
@@ -17,7 +18,8 @@ import org.lwjgl.input.Keyboard;
      name = Lumen.NAME,
      version = Lumen.VERSION,
      acceptedMinecraftVersions = "[1.12.2]",
-     clientSideOnly = true)
+     clientSideOnly = true,
+     dependencies = "required-after:mixinbooter")
 public class Lumen {
     public static final String MODID = "lumen";
     public static final String NAME = "Lumen";
@@ -34,6 +36,7 @@ public class Lumen {
         MinecraftForge.EVENT_BUS.register(new LumenAtmosphere());
         MinecraftForge.EVENT_BUS.register(new LumenWorldGlow());
         MinecraftForge.EVENT_BUS.register(new LumenParticles());
+        MinecraftForge.EVENT_BUS.register(new LumenDynamicLights());
         if (LumenAutoTest.isEnabled()) MinecraftForge.EVENT_BUS.register(new LumenAutoTest());
     }
 }

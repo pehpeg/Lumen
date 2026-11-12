@@ -162,7 +162,7 @@ public class LumenParticles {
             float a = edge * (0.15f + 0.85f * pulse * pulse);
             if (a <= 0.01f) continue;
             double x = f.px + (f.x - f.px) * pt - cx, y = f.py + (f.y - f.py) * pt - cy, z = f.pz + (f.z - f.pz) * pt - cz;
-            fan(buf, tess, x, y, z, ax, az, bx, by, bz, 0.35, 0.75f, 1.0f, 0.25f, 0.35f * a); // halo
+            fan(buf, tess, x, y, z, ax, az, bx, by, bz, 0.55, 0.75f, 1.0f, 0.25f, 0.45f * a); // halo
             fan(buf, tess, x, y, z, ax, az, bx, by, bz, 0.06, 0.95f, 1.0f, 0.60f, a);         // bright core
         }
         GlStateManager.depthMask(true);
@@ -177,13 +177,7 @@ public class LumenParticles {
     private static void fan(BufferBuilder buf, Tessellator tess, double x, double y, double z,
                             double ax, double az, double bx, double by, double bz,
                             double size, float r, float g, float b, float a) {
-        buf.begin(GL11.GL_TRIANGLE_FAN, DefaultVertexFormats.POSITION_COLOR);
-        buf.pos(x, y, z).color(r, g, b, Math.min(1f, a)).endVertex();
-        for (int i = 0; i <= 10; i++) {
-            double ang = i * Math.PI * 2 / 10, c = Math.cos(ang) * size, sn = Math.sin(ang) * size;
-            buf.pos(x + ax * c + bx * sn, y + by * sn, z + az * c + bz * sn).color(r, g, b, 0f).endVertex();
-        }
-        tess.draw();
+        GlowShapes.disc(tess, x, y, z, ax, 0, az, bx, by, bz, size, r, g, b, a);
     }
 
     // ---------------------------------------------------------------- falling leaves

@@ -223,16 +223,8 @@ public class LumenWorldGlow {
             }
             float a = g.alpha * fade * flick * strength;
             if (a <= 0.003f) continue;
-            double s = g.size * flick;
-            buf.begin(GL11.GL_TRIANGLE_FAN, DefaultVertexFormats.POSITION_COLOR);
-            buf.pos(x, y, z).color(g.r, g.g, g.b, Math.min(a, 1f)).endVertex();
-            for (int i = 0; i <= seg; i++) {
-                double ang = i * Math.PI * 2 / seg;
-                double c = Math.cos(ang) * s, sn = Math.sin(ang) * s;
-                buf.pos(x + ax * c + bx * sn, y + ay * c + by * sn, z + az * c + bz * sn)
-                        .color(g.r, g.g, g.b, 0f).endVertex();
-            }
-            tess.draw();
+            double s = g.size * flick * 1.25; // soft falloff reaches further, so a bit larger
+            GlowShapes.disc(tess, x, y, z, ax, ay, az, bx, by, bz, s, g.r, g.g, g.b, Math.min(a * 1.15f, 1f));
         }
 
         GlStateManager.depthMask(true);

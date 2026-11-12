@@ -48,6 +48,15 @@ public class LumenConfig {
     @Config.RangeDouble(min = 0.05, max = 0.95)
     public static double fogStart = 0.55;
 
+    @Config.Comment("Held torches, dropped glowing items, burning mobs, blazes and fireballs light up the area (needs MixinBooter)")
+    public static boolean dynamicLights = true;
+    @Config.Comment("How often moving lights update: SMOOTH (every tick), FAST (every 2 ticks), FASTEST (every 5 ticks, least CPU)")
+    public static DynamicSpeed dynamicLightsSpeed = DynamicSpeed.FAST;
+    public enum DynamicSpeed { SMOOTH, FAST, FASTEST }
+
+    @Config.Comment("Lens flare when looking toward the sun (hidden when the sun is blocked)")
+    public static boolean lensFlare = true;
+
     @Config.Comment("Soft glow halos around nearby torches, lava, glowstone, fire and other lights (fake bloom)")
     public static boolean blockGlow = true;
     @Config.RangeDouble(min = 0, max = 2)

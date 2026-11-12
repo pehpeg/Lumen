@@ -100,16 +100,20 @@ public class LumenRenderer {
             // warm orange near the horizon, pale yellow-white at midday
             float r = 1.0f, g = 0.85f - 0.3f * golden, b = 0.6f - 0.4f * golden;
             float t = (world.getTotalWorldTime() + pt) * 0.002f;
+            // glare and rays fade when terrain/trees hide the sun; the core is depth-tested anyway
+            float seen = 0.25f + 0.75f * sunVisible;
 
-            drawGlow(sun, 100, 45 + 25 * golden, r, g, b, 0.35f * vis);   // wide halo
-            drawGlow(sun, 100, 14, 1.0f, 0.95f, 0.85f, 0.45f * vis);      // hot core
-            drawRays(sun, 100, 70 + 30 * golden, r, g, b, 0.10f * vis, t);
+            drawGlow(sun, 100, 60 + 30 * golden, r, g, b, 0.30f * vis * seen); // wide soft glare
+            drawGlow(sun, 100, 18, 1.0f, 0.96f, 0.88f, 0.55f * vis);          // hot core
+            drawRays(sun, 100, 70 + 30 * golden, r, g, b, 0.10f * vis * sunVisible, t);
+            if (LumenConfig.lensFlare) drawLensFlare(sun, pt, vis * sunVisible, golden);
         }
 
         if (LumenConfig.moonGlow && sun.y < 0.15) {
             Vec3d moon = new Vec3d(-sun.x, -sun.y, -sun.z);
             float vis = clearSky * smooth(-0.15f, 0.1f, (float) moon.y);
-            drawGlow(moon, 100, 30, 0.55f, 0.65f, 1.0f, 0.18f * vis);
+            drawGlow(moon, 100, 38, 0.55f, 0.65f, 1.0f, 0.20f * vis);
+            drawGlow(moon, 100, 10, 0.80f, 0.86f, 1.0f, 0.18f * vis);
         }
 
         GlStateManager.depthMask(true);
@@ -122,6 +126,55 @@ public class LumenRenderer {
         GlStateManager.popMatrix();
     }
 
+    // ---------------------------------------------------------------- sun occlusion + lens flare
+
+    /** 0 = sun hidden behind blocks, 1 = clear line of sight. Smoothed. */
+    private float sunVisible = 1f;
+    private float sunVisibleTarget = 1f;
+
+    @SubscribeEvent
+    public void onTick(net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent e) {
+        if (e.phase != net.minecraftforge.fml.common.gameevent.TickEvent.Phase.END) return;
+        if (!active() || !mc.world.provider.isSurfaceWorld()) return;
+        Entity view = mc.getRenderViewEntity();
+        if (view == null) return;
+        // one short raycast per tick toward the sun: is it hidden by terrain or trees?
+        Vec3d sun = sunDirection(mc.world, 1f);
+        Vec3d eye = view.getPositionEyes(1f);
+        net.minecraft.util.math.RayTraceResult hit = mc.world.rayTraceBlocks(eye, eye.add(sun.scale(160)), false, true, false);
+        sunVisibleTarget = (hit == null || hit.typeOfHit != net.minecraft.util.math.RayTraceResult.Type.BLOCK) ? 1f : 0f;
+        sunVisible += (sunVisibleTarget - sunVisible) * 0.35f;
+    }
+
+    /** Ghost discs along the line from the sun through the screen center, like a camera lens. */
+    private void drawLensFlare(Vec3d sun, float pt, float strength, float golden) {
+        Entity view = mc.getRenderViewEntity();
+        if (view == null || strength <= 0.01f || mc.gameSettings.thirdPersonView == 2) return;
+        Vec3d look = view.getLook(pt);
+        double facing = look.dotProduct(sun);
+        float k = smooth(0.55f, 0.97f, (float) facing) * strength;
+        if (k <= 0.01f) return;
+        // ghosts: position along sun -> center -> beyond (0 = sun, 1 = screen center), size, color, alpha
+        double[][] ghosts = {
+                {0.30, 3.0, 1.00, 0.80, 0.50, 0.30},
+                {0.55, 1.4, 1.00, 0.90, 0.60, 0.35},
+                {0.85, 5.0, 0.55, 0.85, 1.00, 0.12},
+                {1.20, 2.2, 0.80, 0.55, 1.00, 0.22},
+                {1.55, 7.5, 1.00, 0.75, 0.45, 0.10},
+                {1.85, 1.8, 0.60, 1.00, 0.80, 0.20},
+        };
+        GlStateManager.disableDepth();   // lens artifacts sit "on the lens", over everything
+        Tessellator tess = Tessellator.getInstance();
+        for (double[] gh : ghosts) {
+            Vec3d d = sun.add(look.subtract(sun).scale(gh[0])).normalize().scale(50);
+            Vec3d[] bs = basis(d.normalize());
+            float warm = 1f - 0.25f * golden;
+            GlowShapes.disc(tess, d.x, d.y, d.z, bs[0].x, bs[0].y, bs[0].z, bs[1].x, bs[1].y, bs[1].z,
+                    gh[1], (float) gh[2], (float) gh[3] * warm, (float) gh[4] * warm, (float) gh[5] * k);
+        }
+        GlStateManager.enableDepth();
+    }
+
     /** Builds two vectors perpendicular to dir so we can make a camera-facing disc. */
     private static Vec3d[] basis(Vec3d dir) {
         Vec3d ref = Math.abs(dir.z) < 0.9 ? new Vec3d(0, 0, 1) : new Vec3d(1, 0, 0);
@@ -130,23 +183,14 @@ public class LumenRenderer {
         return new Vec3d[]{right, up};
     }
 
-    /** Radial gradient disc: bright center fading to fully transparent edge. */
+    /** Soft glow disc facing the camera, centered on a sky direction. */
     private static void drawGlow(Vec3d dir, double dist, double radius,
                                  float r, float g, float b, float alpha) {
         if (alpha <= 0.002f) return;
         Vec3d[] bs = basis(dir);
         Vec3d c = dir.scale(dist);
-        Tessellator tess = Tessellator.getInstance();
-        BufferBuilder buf = tess.getBuffer();
-        buf.begin(GL11.GL_TRIANGLE_FAN, DefaultVertexFormats.POSITION_COLOR);
-        buf.pos(c.x, c.y, c.z).color(r, g, b, alpha).endVertex();
-        int seg = 32;
-        for (int i = 0; i <= seg; i++) {
-            double a = i * Math.PI * 2 / seg;
-            Vec3d p = c.add(bs[0].scale(Math.cos(a) * radius)).add(bs[1].scale(Math.sin(a) * radius));
-            buf.pos(p.x, p.y, p.z).color(r, g, b, 0f).endVertex();
-        }
-        tess.draw();
+        GlowShapes.disc(Tessellator.getInstance(), c.x, c.y, c.z,
+                bs[0].x, bs[0].y, bs[0].z, bs[1].x, bs[1].y, bs[1].z, radius, r, g, b, alpha);
     }
 
     /** Thin slowly-rotating light shafts radiating from the sun ("god rays" look). */
@@ -187,6 +231,11 @@ public class LumenRenderer {
         e.setRed(e.getRed() + (1.00f - e.getRed()) * golden);
         e.setGreen(e.getGreen() + (0.62f - e.getGreen()) * golden);
         e.setBlue(e.getBlue() + (0.42f - e.getBlue()) * golden);
+        // moonlit nights: pull the dark grey night fog toward deep blue
+        float night = smooth(0.05f, -0.25f, (float) sunDirection(mc.world, pt).y) * (float) LumenConfig.moonlightTint;
+        e.setRed(e.getRed() * (1f - 0.25f * night));
+        e.setGreen(e.getGreen() * (1f - 0.12f * night));
+        e.setBlue(Math.min(1f, e.getBlue() * (1f + 0.25f * night)));
         // per-biome haze tint (smoothly blended by LumenAtmosphere)
         e.setRed(e.getRed() * LumenAtmosphere.tintR());
         e.setGreen(e.getGreen() * LumenAtmosphere.tintG());

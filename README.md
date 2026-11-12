@@ -15,6 +15,10 @@ tweaks to vanilla fog: no framebuffers, no shadow pass, no GLSL. Expect ~0–2 F
 - **Ambient particles** – fireflies on warm nights, leaves drifting from trees, dust motes in caves (respects the vanilla particle setting)
 - **Biome atmosphere** – green swamp haze, warm desert dust, cold snowy air and more via Forge's biome dictionary, blended smoothly as you walk
 - **Shooting stars** – now and then on clear nights
+- **Dynamic lights** – held torches, dropped glowing items, burning mobs, blazes and fireballs light up their surroundings, LambDynamicLights-style (raises block light during chunk meshing and re-meshes only the few sections around moving lights; speed setting SMOOTH / FAST / FASTEST)
+- **Lens flare** – subtle ghosts when looking toward the sun, hidden when terrain or trees block it
+
+**Requires [MixinBooter](https://www.curseforge.com/minecraft/mc-mods/mixin-booter)** (used for dynamic lights).
 - **F7** toggles everything; every effect has its own switch and strength in
   Mods → Lumen → Config (or `config/lumen.cfg`)
 
