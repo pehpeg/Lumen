@@ -216,7 +216,7 @@ public class LumenAutoTest {
                 + " | dynLights=" + LumenDynamicLights.statSources
                 + " | shadowStep=" + LumenShadows.statStep + " pending=" + LumenShadows.statPending
                 + " rays=" + com.lumen.core.SunShadowEngine.tracedRays
-                + " hookCalls=" + com.lumen.core.DynamicLightEngine.hookCalls);
+                + " hookCalls=" + com.lumen.core.DynamicLightEngine.hookCalls + " chunkHook=" + com.lumen.core.DynamicLightEngine.chunkHookCalls);
         if (onShot) LumenConfig.enabled = false;
         pendingShot = null;
     }

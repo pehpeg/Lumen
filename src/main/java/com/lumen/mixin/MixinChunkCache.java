@@ -15,6 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class MixinChunkCache {
     @Inject(method = "getCombinedLight", at = @At("RETURN"), cancellable = true)
     private void lumen$dynamicLight(BlockPos pos, int lightValue, CallbackInfoReturnable<Integer> cir) {
+        DynamicLightEngine.chunkHookCalls++;
         int v = cir.getReturnValueI();
         int n = SunShadowEngine.apply((IBlockAccess) (Object) this, pos, v, true);
         n = DynamicLightEngine.apply(pos, n);

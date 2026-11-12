@@ -143,22 +143,22 @@ public class LumenWorldGlow {
             }
             return redstone
                     ? new Light(p, FLAME, fx, fy - 0.05, fz, 1.0f, 0.15f, 0.08f, 0.7f, 0f, null)
-                    : new Light(p, FLAME, fx, fy, fz, 1.0f, 0.62f, 0.25f, 1.0f, 1f, null);
+                    : new Light(p, FLAME, fx, fy, fz, 1.0f, 0.62f, 0.25f, 0.85f, 1f, null);
         }
         if (block == Blocks.FIRE) {
             return new Light(p, FLAME, cx, p.getY() + 0.35, cz, 1.0f, 0.5f, 0.15f, 1.0f, 1f, null);
         }
         if (block == Blocks.LAVA || block == Blocks.FLOWING_LAVA) {
             if (world.getBlockState(p.up()).getMaterial() == Material.LAVA) return null; // only the surface
-            return new Light(p, TOP, 0, 0, 0, 1.0f, 0.55f, 0.25f, 0.45f, 0.4f, sprite(state));
+            return new Light(p, TOP, 0, 0, 0, 1.0f, 0.55f, 0.25f, 0.28f, 0.4f, sprite(state));
         }
         if (!state.isFullCube()) {   // lanterns from mods, end rods, brewing stands...: glow at the center
             return new Light(p, FLAME, cx, cy, cz, 1.0f, 0.8f, 0.55f, 0.5f * k, 0f, null);
         }
         // full light blocks (glowstone, sea lantern, lamps, jack o'lanterns, magma...): their own texture
-        float r = 1f, g = 0.9f, b = 0.75f, intensity = 0.4f * k;
+        float r = 1f, g = 0.9f, b = 0.75f, intensity = 0.16f * k;  // big surfaces: subtle, or they turn into flat neon
         if (block == Blocks.SEA_LANTERN || block == Blocks.BEACON) { r = 0.85f; g = 0.95f; b = 1f; }
-        else if (block == Blocks.MAGMA) { intensity = 0.35f; }
+        else if (block == Blocks.MAGMA) { intensity = 0.14f; }
         return new Light(p, CUBE, 0, 0, 0, r, g, b, intensity, 0f, sprite(state));
     }
 

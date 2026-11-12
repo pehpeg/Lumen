@@ -22,7 +22,9 @@ public final class DynamicLightEngine {
     public static boolean hasSources() { return sources.length > 0; }
 
     /** Diagnostics: how often the light hooks ran (proves the mixins are applied). */
-    public static long hookCalls;   // racy on purpose: diagnostics only, keep the hot path cheap
+    public static long hookCalls;
+    /** Chunk-building hook only: 0 means another mod replaced chunk meshing. */
+    public static long chunkHookCalls;   // racy on purpose: diagnostics only, keep the hot path cheap
 
     public static int apply(BlockPos pos, int packed) {
         hookCalls++;

@@ -150,6 +150,22 @@ public class LumenRenderer {
     /** 0 = sun hidden behind blocks, 1 = clear line of sight. Smoothed. */
     private Object hintWorld;
     private boolean hintShown;
+    private int ticksInWorld;
+    private boolean hookWarned;
+    private long hookCallsAtJoin;
+
+    /** Status lines on the F3 screen, so problems are visible without digging through logs. */
+    @SubscribeEvent
+    public void onDebugText(net.minecraftforge.client.event.RenderGameOverlayEvent.Text e) {
+        if (!mc.gameSettings.showDebugInfo) return;
+        boolean hooks = com.lumen.core.DynamicLightEngine.chunkHookCalls > 0;
+        e.getLeft().add("");
+        e.getLeft().add("[Lumen] " + (LumenConfig.enabled ? "ON" : "OFF")
+                + " | light hooks: " + (hooks ? "OK" : "NOT RUNNING")
+                + " | dynamic lights: " + LumenDynamicLights.statSources
+                + " | bloom: " + (LumenConfig.bloom ? (bloom.available() ? "on" : "unsupported") : "off")
+                + " | glowing blocks: " + LumenWorldGlow.statGlows);
+    }
 
     private float sunVisible = 1f;
     private float sunVisibleTarget = 1f;
@@ -157,8 +173,18 @@ public class LumenRenderer {
     @SubscribeEvent
     public void onTick(net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent e) {
         if (e.phase != net.minecraftforge.fml.common.gameevent.TickEvent.Phase.END) return;
+        if (mc.world != null && mc.player != null && ++ticksInWorld == 200 && !hookWarned
+                && LumenConfig.enabled && (LumenConfig.dynamicLights || LumenConfig.sunShadows)
+                && com.lumen.core.DynamicLightEngine.chunkHookCalls == hookCallsAtJoin) {
+            hookWarned = true;
+            mc.player.sendMessage(new TextComponentString("\u00a76Lumen\u00a7r: \u00a7cdynamic lights and shadows aren't active\u00a7r"
+                    + " - another mod is replacing chunk rendering (OptiFine, Vintagium, Celeritas, Nothirium...)."
+                    + " Everything else still works."));
+        }
         if (mc.world != hintWorld && mc.player != null && mc.world != null) {
             hintWorld = mc.world;
+            ticksInWorld = 0;
+            hookCallsAtJoin = com.lumen.core.DynamicLightEngine.chunkHookCalls;
             if (!hintShown && Lumen.toggleKey != null) {
                 hintShown = true;
                 mc.player.sendMessage(new TextComponentString("\u00a76Lumen\u00a7r: press \u00a7e"
