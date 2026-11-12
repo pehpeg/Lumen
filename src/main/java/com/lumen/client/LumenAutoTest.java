@@ -84,7 +84,7 @@ public class LumenAutoTest {
         s.setup = () -> teleportToBiome(Biomes.DESERT);
         scenes.add(s);
 
-        s = new Scene("8_forest_leaves", 6000, 45f, 10f, 300);
+        s = new Scene("8_forest_leaves", 6000, 45f, -5f, 300);
         s.setup = () -> teleportToBiome(Biomes.FOREST);
         scenes.add(s);
     }

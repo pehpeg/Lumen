@@ -213,7 +213,7 @@ public class LumenParticles {
         Leaf(World w, double x, double y, double z, IBlockState state, Random r) {
             super(w, x, y, z, 0, 0, 0, state);
             particleMaxAge = 200 + r.nextInt(120);
-            particleScale = 0.9f + r.nextFloat() * 0.5f;
+            particleScale = 2.2f + r.nextFloat() * 1.0f;   // ~1/4 block, leaf-sized
             particleGravity = 0;
             canCollide = true;
             motionX = motionY = motionZ = 0;
