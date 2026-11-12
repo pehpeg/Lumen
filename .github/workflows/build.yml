@@ -60,15 +60,22 @@ jobs:
         run: |
           chmod +x gradlew
           mkdir -p run
+          # runObfClient runs the real release jar (reobfuscated, from the mods folder, with
+          # MixinBooter) exactly like a player's game - not the development classes
           timeout 1800 xvfb-run -a -s "-screen 0 1280x720x24" \
-            ./gradlew runClient --no-daemon -Pextra_jvm_args="-Dlumen.autotest=true -Dfml.coreMods.load=com.lumen.core.LumenLoadingPlugin" 2>&1 | tee client-output.log | grep -E "LUMEN-AUTOTEST|Exception|Error|FATAL|OpenGL" || true
+            ./gradlew runObfClient --no-daemon -Pextra_jvm_args="-Dlumen.autotest=true" 2>&1 | tee client-output.log | grep -E "LUMEN-AUTOTEST|Exception|Error|FATAL|OpenGL|Mixin" || true
 
       - name: Publish results to test-results branch
         if: always()
         run: |
           mkdir -p /tmp/results
-          cp run/screenshots/*.png run/screenshots/lumen-report.txt /tmp/results/ 2>/dev/null || true
-          cp run/logs/latest.log /tmp/results/latest.log 2>/dev/null || true
+          SHOTS=$(dirname "$(find run -name lumen-report.txt | head -1)" 2>/dev/null)
+          [ -n "$SHOTS" ] && cp "$SHOTS"/*.png "$SHOTS"/lumen-report.txt /tmp/results/ 2>/dev/null || true
+          LOG=$(find run -path '*logs/latest.log' | head -1); [ -n "$LOG" ] && cp "$LOG" /tmp/results/latest.log || true
+          # what's inside the release jar (mixin config + refmap must be there)
+          JAR=$(ls build/libs/*.jar | grep -v -- '-dev\|-sources' | head -1)
+          { echo "jar: $JAR"; unzip -l "$JAR"; echo; echo "--- MANIFEST"; unzip -p "$JAR" META-INF/MANIFEST.MF; echo "--- refmap"; unzip -p "$JAR" mixins.lumen.refmap.json; } > /tmp/results/jar-contents.txt 2>&1 || true
+          find run -maxdepth 3 -name '*.jar' > /tmp/results/run-mods.txt 2>/dev/null || true
           tail -n 400 client-output.log > /tmp/results/client-output-tail.log 2>/dev/null || true
           ls -la /tmp/results
           cd /tmp/results

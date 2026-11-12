@@ -215,7 +215,8 @@ public class LumenAutoTest {
                 + " oreMasks=" + OreMasks.built + " | " + LumenParticles.stats
                 + " | dynLights=" + LumenDynamicLights.statSources
                 + " | shadowStep=" + LumenShadows.statStep + " pending=" + LumenShadows.statPending
-                + " rays=" + com.lumen.core.SunShadowEngine.tracedRays);
+                + " rays=" + com.lumen.core.SunShadowEngine.tracedRays
+                + " hookCalls=" + com.lumen.core.DynamicLightEngine.hookCalls);
         if (onShot) LumenConfig.enabled = false;
         pendingShot = null;
     }

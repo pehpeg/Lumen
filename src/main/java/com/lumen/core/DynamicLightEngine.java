@@ -21,7 +21,11 @@ public final class DynamicLightEngine {
     public static void setSources(double[] snapshot) { sources = snapshot; }
     public static boolean hasSources() { return sources.length > 0; }
 
+    /** Diagnostics: how often the light hooks ran (proves the mixins are applied). */
+    public static volatile long hookCalls;
+
     public static int apply(BlockPos pos, int packed) {
+        hookCalls++;
         double[] s = sources;
         if (s.length == 0) return packed;
         double x = pos.getX() + 0.5, y = pos.getY() + 0.5, z = pos.getZ() + 0.5;
