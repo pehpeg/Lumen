@@ -98,7 +98,7 @@ public class LumenDynamicLights {
 
     // ---------------------------------------------------------------- what glows
 
-    private static int luminance(Entity en) {
+    static int luminance(Entity en) {
         int lum = 0;
         if (en.isBurning()) lum = 15;
         if (en instanceof EntityBlaze) lum = Math.max(lum, 10);

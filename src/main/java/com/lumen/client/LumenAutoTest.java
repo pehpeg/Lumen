@@ -225,7 +225,11 @@ public class LumenAutoTest {
     private void setupDynamicLights() {
         BlockPos at = spawn.add(0, 0, -30);
         onServer(w -> {
+            // find dry ground nearby (the first try may be a pond)
             BlockPos ground = w.getTopSolidOrLiquidBlock(at);
+            for (int i = 0; i < 40 && w.getBlockState(ground).getMaterial().isLiquid(); i++) {
+                ground = w.getTopSolidOrLiquidBlock(at.add((i % 7 - 3) * 6, 0, -(i / 7) * 6));
+            }
             EntityPlayerMP p = w.getMinecraftServer().getPlayerList().getPlayers().get(0);
             p.inventory.setInventorySlotContents(p.inventory.currentItem, new net.minecraft.item.ItemStack(Blocks.TORCH));
             p.inventoryContainer.detectAndSendChanges();

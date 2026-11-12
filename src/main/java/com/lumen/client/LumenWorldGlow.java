@@ -187,7 +187,29 @@ public class LumenWorldGlow {
         float time = (mc.world.getTotalWorldTime() + pt);
 
         if (LumenConfig.emissiveOres && !ores.isEmpty()) drawOres(cx, cy, cz, time);
-        if (LumenConfig.blockGlow && !glows.isEmpty()) drawHalos(cx, cy, cz, time);
+        if (LumenConfig.blockGlow) collectEntityGlows(view, pt);
+        if (LumenConfig.blockGlow && (!glows.isEmpty() || !entityGlows.isEmpty())) drawHalos(cx, cy, cz, time);
+    }
+
+    /** Halos that follow glowing entities every frame: dropped glowstone, burning mobs, blazes... */
+    private final List<Glow> entityGlows = new ArrayList<>();
+
+    private void collectEntityGlows(Entity view, float pt) {
+        entityGlows.clear();
+        boolean firstPerson = mc.gameSettings.thirdPersonView == 0;
+        for (Entity en : mc.world.loadedEntityList) {
+            if (entityGlows.size() >= 32) break;
+            if (en == view && firstPerson) continue;            // no halo stuck to your own face
+            if (en.getDistanceSq(view) > 24 * 24) continue;
+            int lum = LumenDynamicLights.luminance(en);
+            if (lum < 6) continue;
+            double x = en.lastTickPosX + (en.posX - en.lastTickPosX) * pt;
+            double y = en.lastTickPosY + (en.posY - en.lastTickPosY) * pt + en.height * 0.6;
+            double z = en.lastTickPosZ + (en.posZ - en.lastTickPosZ) * pt;
+            boolean fire = en.isBurning();
+            entityGlows.add(new Glow(x, y, z, 1.0f, fire ? 0.55f : 0.75f, fire ? 0.20f : 0.40f,
+                    0.5f + lum * 0.07f, fire ? 1f : 0.3f, 0.12f + lum * 0.02f));
+        }
     }
 
     private void drawHalos(double cx, double cy, double cz, float time) {
@@ -211,7 +233,10 @@ public class LumenWorldGlow {
         Tessellator tess = Tessellator.getInstance();
         BufferBuilder buf = tess.getBuffer();
         int seg = 16;
-        for (Glow g : glows) {
+        List<Glow> all = new ArrayList<>(glows.size() + entityGlows.size());
+        all.addAll(glows);
+        all.addAll(entityGlows);
+        for (Glow g : all) {
             double x = g.x - cx, y = g.y - cy, z = g.z - cz;
             double d = Math.sqrt(x * x + y * y + z * z);
             float fade = MathHelper.clamp(1f - (float) d / (RADIUS_XZ + 4f), 0f, 1f);
