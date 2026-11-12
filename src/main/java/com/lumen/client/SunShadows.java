@@ -135,7 +135,7 @@ public class SunShadows {
         // collect finished work, compile display lists (GL = main thread)
         Result res;
         int compiled = 0;
-        while (compiled < 8 && (res = done.poll()) != null) {
+        while (compiled < 3 && (res = done.poll()) != null) {
             res.col.queued = false;
             if (res.generation != generation) continue;
             res.col.verts = res.verts;
@@ -144,7 +144,7 @@ public class SunShadows {
             compiled++;
         }
         // shadow strength changes at dawn/dusk: recolor from stored data (no re-tracing)
-        for (Column c : want) if (c.verts != null && c.builtDay != dayBucket && compiled < 16) { compile(c); compiled++; }
+        for (Column c : want) if (c.verts != null && c.builtDay != dayBucket && compiled < 6) { compile(c); compiled++; }
 
         // queue new work, nearest first
         want.sort((a, b) -> Integer.compare(sq(a.cx - pcx) + sq(a.cz - pcz), sq(b.cx - pcx) + sq(b.cz - pcz)));
@@ -191,6 +191,7 @@ public class SunShadows {
 
     private static float[] trace(ChunkCache cache, int bx, int bz, int[] heights, double sx, double sy, double sz, int dist, int res) {
         FloatList out = new FloatList();
+        java.util.List<float[]> strips = new java.util.ArrayList<>();   // uniform ground faces: {x, y, z, shade}
         BlockPos.MutableBlockPos p = new BlockPos.MutableBlockPos();
         BlockPos.MutableBlockPos n = new BlockPos.MutableBlockPos();
         for (int lx = 0; lx < 16; lx++) for (int lz = 0; lz < 16; lz++) {
@@ -205,11 +206,38 @@ public class SunShadows {
                     if (n.getY() > 255) continue;
                     if (cache.getBlockState(n).isOpaqueCube()) continue;
                     if (cache.getLightFor(EnumSkyBlock.SKY, n) < 12) continue;          // indoors / caves: no sun
-                    emitFace(out, cache, p, x, y, z, f, bx, bz, sx, sy, sz, dist, res);
+                    emitFace(out, strips, cache, p, x, y, z, f, bx, bz, sx, sy, sz, dist, res);
                 }
             }
         }
+        mergeStrips(out, strips, bx, bz);
         return out.toArray();
+    }
+
+    /** Evenly shaded ground faces in a row along X with the same height and shade become one quad. */
+    private static void mergeStrips(FloatList out, java.util.List<float[]> strips, int bx, int bz) {
+        strips.sort((a, b) -> a[1] != b[1] ? Float.compare(a[1], b[1]) : a[2] != b[2] ? Float.compare(a[2], b[2]) : Float.compare(a[0], b[0]));
+        int i = 0;
+        while (i < strips.size()) {
+            float[] s0 = strips.get(i);
+            int j = i + 1;
+            float sum = s0[3];
+            while (j < strips.size()) {
+                float[] sj = strips.get(j);
+                if (sj[1] != s0[1] || sj[2] != s0[2] || sj[0] != s0[0] + (j - i) || Math.abs(sj[3] - s0[3]) > 0.02f) break;
+                sum += sj[3];
+                j++;
+            }
+            float sh = sum / (j - i);
+            if (sh >= 0.03f) {
+                double y = s0[1] + 1 + 0.002, x0 = s0[0] - bx, x1 = s0[0] + (j - i) - bx, z0 = s0[2] - bz, z1 = z0 + 1;
+                out.add((float) x0, (float) y, (float) z0, sh);
+                out.add((float) x1, (float) y, (float) z0, sh);
+                out.add((float) x1, (float) y, (float) z1, sh);
+                out.add((float) x0, (float) y, (float) z1, sh);
+            }
+            i = j;
+        }
     }
 
     /**
@@ -217,7 +245,7 @@ public class SunShadows {
      * are sampled at corners + center first; if that's uniform the face is one quad (or nothing
      * when fully lit), and only faces a shadow edge crosses are traced on a res x res grid.
      */
-    private static void emitFace(FloatList out, ChunkCache cache, BlockPos.MutableBlockPos m, int x, int y, int z,
+    private static void emitFace(FloatList out, java.util.List<float[]> strips, ChunkCache cache, BlockPos.MutableBlockPos m, int x, int y, int z,
                                  EnumFacing f, int bx, int bz, double sx, double sy, double sz, int dist, int res) {
         double dot = f.getXOffset() * sx + f.getYOffset() * sy + f.getZOffset() * sz;
         EnumFacing t1 = ColoredLight.tangent1(f), t2 = ColoredLight.tangent2(f);
@@ -240,7 +268,11 @@ public class SunShadows {
         float lo = Math.min(Math.min(Math.min(c00, c10), Math.min(c11, c01)), mid);
         float hi = Math.max(Math.max(Math.max(c00, c10), Math.max(c11, c01)), mid);
         if (hi < 0.03f) return;                                   // fully sunlit: nothing to draw
-        if (res <= 1 || hi - lo < 0.04f) {                        // uniform: one quad
+        if (res <= 1 || hi - lo < 0.06f) {                        // uniform: one quad
+            if (f == EnumFacing.UP && hi - lo < 0.02f) {          // flat ground: merged into strips later
+                strips.add(new float[]{x, y, z, (c00 + c10 + c11 + c01) * 0.25f});
+                return;
+            }
             quad(out, ox, oy, oz, t1, t2, nx, ny, nz, 0, 0, 1, 1, c00, c10, c11, c01, bx, bz);
             return;
         }
@@ -311,8 +343,8 @@ public class SunShadows {
             if (mat == Material.AIR) continue;
             if (st.isOpaqueCube()) return 0f;
             if (mat == Material.LEAVES) t *= 0.5f;
-            else if (mat.blocksMovement()) t *= 0.55f;
-            else if (!mat.isLiquid()) t *= 0.92f;
+            else if (mat.blocksMovement()) t *= 0.55f;     // fences, slabs, glass...
+            // grass, flowers, water...: no shadow (they'd only add noise)
             if (t < 0.06f) return 0f;
         }
     }
