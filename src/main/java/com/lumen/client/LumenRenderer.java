@@ -187,6 +187,10 @@ public class LumenRenderer {
         e.setRed(e.getRed() + (1.00f - e.getRed()) * golden);
         e.setGreen(e.getGreen() + (0.62f - e.getGreen()) * golden);
         e.setBlue(e.getBlue() + (0.42f - e.getBlue()) * golden);
+        // per-biome haze tint (smoothly blended by LumenAtmosphere)
+        e.setRed(e.getRed() * LumenAtmosphere.tintR());
+        e.setGreen(e.getGreen() * LumenAtmosphere.tintG());
+        e.setBlue(e.getBlue() * LumenAtmosphere.tintB());
     }
 
     @SubscribeEvent
@@ -198,6 +202,8 @@ public class LumenRenderer {
         float far = e.getFarPlaneDistance();
         // never start the haze closer than 48 blocks, so low render distances stay clear
         float start = Math.max(far * (float) LumenConfig.fogStart, Math.min(48f, far * 0.8f));
+        start *= LumenAtmosphere.fogStartFactor(); // denser haze in swamps, jungles...
+        start = Math.max(start, Math.min(24f, far * 0.5f));
         GlStateManager.setFogStart(start);
         GlStateManager.setFogEnd(far);
     }

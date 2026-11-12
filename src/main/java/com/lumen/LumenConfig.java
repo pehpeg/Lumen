@@ -48,6 +48,34 @@ public class LumenConfig {
     @Config.RangeDouble(min = 0.05, max = 0.95)
     public static double fogStart = 0.55;
 
+    @Config.Comment("Soft glow halos around nearby torches, lava, glowstone, fire and other lights (fake bloom)")
+    public static boolean blockGlow = true;
+    @Config.RangeDouble(min = 0, max = 2)
+    public static double blockGlowStrength = 1.0;
+    @Config.Comment("Max number of halos drawn at once")
+    @Config.RangeInt(min = 8, max = 256)
+    public static int blockGlowMaxLights = 64;
+
+    @Config.Comment("Ores glow in the dark (masks are generated automatically, works with modded ores)")
+    public static boolean emissiveOres = true;
+    @Config.Comment("Ore blocks (registry names, or just the path like 'coal_ore') that should not glow")
+    public static String[] emissiveOreExclude = {"coal_ore"};
+
+    @Config.Comment("Fireflies over grass on warm nights")
+    public static boolean fireflies = true;
+    @Config.Comment("Leaves drifting down from trees")
+    public static boolean fallingLeaves = true;
+    @Config.Comment("Dust motes floating in caves")
+    public static boolean caveDust = true;
+
+    @Config.Comment("Per-biome haze: green swamps, warm deserts, cold snowy biomes... blended as you walk")
+    public static boolean biomeAtmosphere = true;
+    @Config.RangeDouble(min = 0, max = 1)
+    public static double biomeAtmosphereStrength = 0.8;
+
+    @Config.Comment("Occasional shooting stars on clear nights")
+    public static boolean shootingStars = true;
+
     @Mod.EventBusSubscriber(modid = Lumen.MODID)
     public static class Sync {
         @SubscribeEvent

@@ -10,6 +10,11 @@ tweaks to vanilla fog: no framebuffers, no shadow pass, no GLSL. Expect ~0–2 F
 - **Color grading** – warm amber golden hour, cool blue nights, grey-blue rain, teal underwater, warm Nether
 - **Atmospheric fog** – depth haze starts closer (configurable) and turns peach at dawn/dusk
 - **Vignette** – darkened screen edges
+- **Glow halos** – soft "fake bloom" around nearby torches, lava, glowstone, fire, sea lanterns, redstone and portals, fading out in daylight
+- **Emissive ores** – ores glow in dark caves; glow masks are generated automatically by comparing each ore texture with stone/netherrack/end stone, so modded ores work too (coal excluded by default)
+- **Ambient particles** – fireflies on warm nights, leaves drifting from trees, dust motes in caves (respects the vanilla particle setting)
+- **Biome atmosphere** – green swamp haze, warm desert dust, cold snowy air and more via Forge's biome dictionary, blended smoothly as you walk
+- **Shooting stars** – now and then on clear nights
 - **F7** toggles everything; every effect has its own switch and strength in
   Mods → Lumen → Config (or `config/lumen.cfg`)
 

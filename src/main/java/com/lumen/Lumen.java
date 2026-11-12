@@ -1,6 +1,9 @@
 package com.lumen;
 
+import com.lumen.client.LumenAtmosphere;
 import com.lumen.client.LumenAutoTest;
+import com.lumen.client.LumenParticles;
+import com.lumen.client.LumenWorldGlow;
 import com.lumen.client.LumenLightmap;
 import com.lumen.client.LumenRenderer;
 import net.minecraft.client.settings.KeyBinding;
@@ -28,6 +31,9 @@ public class Lumen {
         ClientRegistry.registerKeyBinding(toggleKey);
         MinecraftForge.EVENT_BUS.register(new LumenRenderer());
         MinecraftForge.EVENT_BUS.register(new LumenLightmap());
+        MinecraftForge.EVENT_BUS.register(new LumenAtmosphere());
+        MinecraftForge.EVENT_BUS.register(new LumenWorldGlow());
+        MinecraftForge.EVENT_BUS.register(new LumenParticles());
         if (LumenAutoTest.isEnabled()) MinecraftForge.EVENT_BUS.register(new LumenAutoTest());
     }
 }
