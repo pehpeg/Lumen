@@ -9,9 +9,6 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 @Config(modid = Lumen.MODID, name = "lumen-lighting")
 public class LumenConfig {
 
-    @Config.Comment("Master switch (toggle in-game with K)")
-    public static boolean enabled = true;
-
     @Config.Name("dynamic_lights")
     public static DynamicLights dynamicLights = new DynamicLights();
     @Config.Name("emissive")

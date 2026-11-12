@@ -138,7 +138,7 @@ public class LumenAutoTest {
         Scene s = scenes.get(sceneIndex);
         switch (phase) {
             case 0:
-                LumenConfig.enabled = true;
+                LumenClient.active = true;
                 skipScene = false;
                 clearHands();
                 onServer(w -> w.setWorldTime(s.time));
@@ -178,7 +178,7 @@ public class LumenAutoTest {
                 + " | shadow quads=" + SunShadows.statQuads + " pending=" + SunShadows.statPending
                 + " lastColumnBuild=" + SunShadows.statLastBuildMicros + "us"
                 + " | " + LumenClient.timings());
-        if (onShot) LumenConfig.enabled = false;
+        if (onShot) LumenClient.active = false;
         pendingShot = null;
     }
 

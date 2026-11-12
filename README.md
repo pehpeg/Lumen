@@ -19,8 +19,6 @@ own light engine or draws its own layer, so it works no matter which chunk rende
 - **Sun shadows** – trees, buildings and cliffs cast shadows traced through the blocks on a
   background thread; partial blocks (slabs, stairs, fences) shade by their shape; faces turned from
   the sun are shaded; shade is slightly cool like sky light.
-- **K** switches between Lumen and vanilla instantly (rebindable in Controls → Lumen). F3 shows a
-  `[Lumen]` status line with counts and CPU time.
 
 **Requires [MixinBooter](https://www.curseforge.com/minecraft/mc-mods/mixin-booter).** Settings: `config/lumen-lighting.cfg`.
 

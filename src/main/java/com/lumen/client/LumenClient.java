@@ -1,14 +1,9 @@
 package com.lumen.client;
 
-import com.lumen.Lumen;
 import com.lumen.LumenConfig;
-import com.lumen.core.VirtualLights;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.GlStateManager.DestFactor;
-import net.minecraft.client.renderer.GlStateManager.SourceFactor;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.resources.IReloadableResourceManager;
@@ -18,15 +13,11 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.IWorldEventListener;
 import net.minecraft.world.World;
-import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.opengl.GL11;
 
@@ -43,6 +34,8 @@ import java.util.Map;
 public class LumenClient {
 
     private static LumenClient instance;
+    /** Only the automated test switches this off (for its comparison screenshots). */
+    static boolean active = true;
     private final Minecraft mc = Minecraft.getMinecraft();
 
     final EmissiveTextures textures = new EmissiveTextures();
@@ -55,11 +48,8 @@ public class LumenClient {
     private int lastScanVersion = -1, lastDynVersion = -1, glowVersion = -1;
     private final Map<EmissiveTextures.Glow, List<SectionScanner.GlowQuad>> glowGroups = new IdentityHashMap<>();
     private World listenedWorld;
-    private boolean hintShown, hookWarned;
-    private int ticksWithSources;
-    private long hitsAtStart;
 
-    // CPU time spent by Lumen (for the test report and F3)
+    // CPU time spent by Lumen (for the test report)
     private static long tickNanos, tickCount, renderNanos, renderCount, worstTick;
 
     static void addTickTime(long nanos) { tickNanos += nanos; worstTick = Math.max(worstTick, nanos); }
@@ -107,8 +97,7 @@ public class LumenClient {
         World w = mc.world;
         if (w != null && w != listenedWorld) { w.addEventListener(new BlockListener()); listenedWorld = w; }
         if (w == null || mc.player == null) return;
-        hints();
-        if (!LumenConfig.enabled) return;
+        if (!active) return;
         long t0 = System.nanoTime();
         tickFeatures();
         long dt = System.nanoTime() - t0;
@@ -156,7 +145,7 @@ public class LumenClient {
 
     @SubscribeEvent
     public void onRenderLast(RenderWorldLastEvent e) {
-        if (!LumenConfig.enabled || mc.world == null) return;
+        if (!active || mc.world == null) return;
         Entity view = mc.getRenderViewEntity();
         if (view == null) return;
         float pt = e.getPartialTicks();
@@ -204,44 +193,5 @@ public class LumenClient {
             }
             tess.draw();
         }
-    }
-
-    // ---------------------------------------------------------------- toggle, hints, diagnostics
-
-    @SubscribeEvent
-    public void onKey(InputEvent.KeyInputEvent e) {
-        if (Lumen.toggleKey == null || !Lumen.toggleKey.isPressed()) return;
-        LumenConfig.enabled = !LumenConfig.enabled;
-        if (mc.player != null) mc.player.sendStatusMessage(new TextComponentString(
-                "Lumen: " + (LumenConfig.enabled ? "§aON" : "§cOFF (vanilla)")), true);
-    }
-
-    private void hints() {
-        if (!hintShown && Lumen.toggleKey != null) {
-            hintShown = true;
-            mc.player.sendMessage(new TextComponentString("§6Lumen§r: press §e"
-                    + Lumen.toggleKey.getDisplayName() + "§r to switch between Lumen and vanilla"));
-        }
-        // dynamic lights self-check: emitters exist but the light engine never asked about them
-        if (DynamicLights.statSources > 0 && LumenConfig.enabled) {
-            if (ticksWithSources++ == 0) hitsAtStart = VirtualLights.hits;
-            if (ticksWithSources == 100 && VirtualLights.hits == hitsAtStart && !hookWarned) {
-                hookWarned = true;
-                mc.player.sendMessage(new TextComponentString("§6Lumen§r: §cdynamic lights aren't reaching the light engine§r"
-                        + " - another mod may replace it. Please report which lighting mods you use."));
-            }
-        } else ticksWithSources = 0;
-    }
-
-    @SubscribeEvent
-    public void onDebugText(RenderGameOverlayEvent.Text e) {
-        if (!mc.gameSettings.showDebugInfo) return;
-        e.getLeft().add("");
-        e.getLeft().add("[Lumen] " + (LumenConfig.enabled ? "ON" : "OFF")
-                + " | moving lights " + DynamicLights.statSources + (VirtualLights.hits > 0 ? " (engine OK)" : "")
-                + " | block light " + BlockLighting.statLights + " / " + BlockLighting.statQuads + "q"
-                + " | glow " + SectionScanner.statQuads + "q (" + EmissiveTextures.statPack + " pack, " + EmissiveTextures.statAuto + " auto)"
-                + " | shadows " + SunShadows.statQuads + "q, " + SunShadows.statPending + " pending");
-        e.getLeft().add("[Lumen] " + timings());
     }
 }

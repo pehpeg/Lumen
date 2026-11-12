@@ -95,7 +95,7 @@ public class SunShadows {
         double sx = -Math.sin(rad), sy = Math.cos(rad), sz = 0.18;
         double len = Math.sqrt(sx * sx + sy * sy + sz * sz);
         float rain = w.getRainStrength(1f);
-        boolean nowActive = LumenConfig.enabled && LumenConfig.shadows.enabled && w.provider.isSurfaceWorld() && sy > 0.1 && rain < 0.9f;
+        boolean nowActive = LumenClient.active && LumenConfig.shadows.enabled && w.provider.isSurfaceWorld() && sy > 0.1 && rain < 0.9f;
         // how strong shadows are right now: fade in after sunrise / out before sunset and in rain
         float day = (float) Math.max(0, Math.min(1, (sy - 0.1) / 0.25)) * (1f - rain);
         int newDay = Math.round(day * 10);

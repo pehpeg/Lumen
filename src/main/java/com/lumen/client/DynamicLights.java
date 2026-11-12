@@ -94,7 +94,7 @@ public class DynamicLights {
             activeWorld = world;
         }
         if (world == null || mc.player == null) return;
-        boolean on = LumenConfig.enabled && LumenConfig.dynamicLights.enabled;
+        boolean on = LumenClient.active && LumenConfig.dynamicLights.enabled;
         if (on && ++ticks % LumenConfig.dynamicLights.updateInterval != 0) return;
 
         wantedColors = new HashMap<>();
