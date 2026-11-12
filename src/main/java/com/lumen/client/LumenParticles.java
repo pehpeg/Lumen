@@ -145,6 +145,7 @@ public class LumenParticles {
         double ax = ActiveRenderInfo.getRotationX(), az = ActiveRenderInfo.getRotationZ();
         double bx = ActiveRenderInfo.getRotationYZ(), by = ActiveRenderInfo.getRotationXZ(), bz = ActiveRenderInfo.getRotationXY();
 
+        LumenGl.prepare();
         GlStateManager.disableTexture2D();
         GlStateManager.disableLighting();
         GlStateManager.disableAlpha();
@@ -170,8 +171,8 @@ public class LumenParticles {
         GlStateManager.disableBlend();
         GlStateManager.enableCull();
         GlStateManager.enableAlpha();
-        GlStateManager.enableTexture2D();
         GlStateManager.shadeModel(GL11.GL_FLAT);
+        LumenGl.finish();
     }
 
     private static void fan(BufferBuilder buf, Tessellator tess, double x, double y, double z,

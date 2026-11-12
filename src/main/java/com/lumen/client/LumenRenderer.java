@@ -73,8 +73,11 @@ public class LumenRenderer {
     @SubscribeEvent
     public void onWorldLast(RenderWorldLastEvent e) {
         if (!active()) return;
+        LumenGl.prepare();
         if (mc.world.provider.isSurfaceWorld()) drawSkyGlow(e.getPartialTicks());
+        LumenGl.prepare();
         drawScreenEffects(e.getPartialTicks());
+        LumenGl.finish();
     }
 
     private void drawSkyGlow(float pt) {
@@ -265,12 +268,14 @@ public class LumenRenderer {
         if (!LumenConfig.colorGrading && !LumenConfig.vignette) return;
         double w = 1, h = 1; // normalized screen space
 
+        // save matrices instead of pushing: the projection stack can be just 2 deep on some drivers
+        PROJ.clear(); MODEL.clear();
+        GL11.glGetFloat(GL11.GL_PROJECTION_MATRIX, PROJ);
+        GL11.glGetFloat(GL11.GL_MODELVIEW_MATRIX, MODEL);
         GlStateManager.matrixMode(GL11.GL_PROJECTION);
-        GlStateManager.pushMatrix();
         GlStateManager.loadIdentity();
         GlStateManager.ortho(0, 1, 1, 0, -1, 1);
         GlStateManager.matrixMode(GL11.GL_MODELVIEW);
-        GlStateManager.pushMatrix();
         GlStateManager.loadIdentity();
 
         GlStateManager.disableFog();
@@ -298,10 +303,15 @@ public class LumenRenderer {
         GlStateManager.color(1, 1, 1, 1);
 
         GlStateManager.matrixMode(GL11.GL_PROJECTION);
-        GlStateManager.popMatrix();
+        PROJ.rewind();
+        GL11.glLoadMatrix(PROJ);
         GlStateManager.matrixMode(GL11.GL_MODELVIEW);
-        GlStateManager.popMatrix();
+        MODEL.rewind();
+        GL11.glLoadMatrix(MODEL);
     }
+
+    private static final java.nio.FloatBuffer PROJ = org.lwjgl.BufferUtils.createFloatBuffer(16);
+    private static final java.nio.FloatBuffer MODEL = org.lwjgl.BufferUtils.createFloatBuffer(16);
 
     private void drawGrade(double w, double h, float pt) {
         float s = (float) LumenConfig.colorGradingStrength;

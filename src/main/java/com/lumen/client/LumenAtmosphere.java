@@ -126,6 +126,7 @@ public class LumenAtmosphere {
         if (stars.isEmpty() || !LumenConfig.enabled || !LumenConfig.shootingStars) return;
         float pt = e.getPartialTicks();
 
+        LumenGl.prepare();
         GlStateManager.disableTexture2D();
         GlStateManager.disableLighting();
         GlStateManager.disableAlpha();

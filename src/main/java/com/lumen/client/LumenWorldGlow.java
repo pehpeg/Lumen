@@ -186,9 +186,12 @@ public class LumenWorldGlow {
         double cz = view.lastTickPosZ + (view.posZ - view.lastTickPosZ) * pt;
         float time = (mc.world.getTotalWorldTime() + pt);
 
+        LumenGl.prepare();
         if (LumenConfig.emissiveOres && !ores.isEmpty()) drawOres(cx, cy, cz, time);
+        LumenGl.prepare();
         if (LumenConfig.blockGlow) collectEntityGlows(view, pt);
         if (LumenConfig.blockGlow && (!glows.isEmpty() || !entityGlows.isEmpty())) drawHalos(cx, cy, cz, time);
+        LumenGl.finish();
     }
 
     /** Halos that follow glowing entities every frame: dropped glowstone, burning mobs, blazes... */
@@ -262,8 +265,7 @@ public class LumenWorldGlow {
     }
 
     private void drawOres(double cx, double cy, double cz, float time) {
-        mc.entityRenderer.disableLightmap();
-        GlStateManager.enableTexture2D();
+        GlStateManager.enableTexture2D();   // unit 0 only; LumenGl.prepare() turned the lightmap unit off
         GlStateManager.disableLighting();
         GlStateManager.disableCull();
         GlStateManager.enableBlend();
@@ -296,7 +298,7 @@ public class LumenWorldGlow {
         GlStateManager.alphaFunc(GL11.GL_GREATER, 0.1f);
         GlStateManager.disableBlend();
         GlStateManager.enableCull();
-        mc.entityRenderer.enableLightmap();
+        // (no enableLightmap here: leaving it on leaked into F1/F5 frames, where vanilla doesn't reset it)
         GlStateManager.bindTexture(mc.getTextureMapBlocks().getGlTextureId());
     }
 
