@@ -115,8 +115,7 @@ public class LumenAutoTest {
 
         ticksInWorld++;
         if (ticksInWorld == 1) {
-            spawn = new BlockPos(mc.player);
-            log("joined world at " + spawn);
+            log("joined world");
             onServer(w -> w.getGameRules().setOrCreateGameRule("doDaylightCycle", "false"));
             onServer(w -> w.getGameRules().setOrCreateGameRule("doMobSpawning", "false"));
             buildScenes();
@@ -126,6 +125,10 @@ public class LumenAutoTest {
         if (wait > 0) { wait--; return; }
         if (sceneIndex >= scenes.size()) { finish(); return; }
 
+        if (spawn == null) {   // position is only reliable once the server has placed us
+            spawn = new BlockPos(mc.player);
+            log("spawn at " + spawn + " biome=" + mc.world.getBiome(spawn).getBiomeName());
+        }
         Scene s = scenes.get(sceneIndex);
         switch (phase) {
             case 0:
@@ -241,7 +244,13 @@ public class LumenAutoTest {
                 return;
             }
             w.getChunkProvider().provideChunk(found.getX() >> 4, found.getZ() >> 4); // load it first
-            BlockPos top = w.getTopSolidOrLiquidBlock(found); // ground level, under any tree canopy
+            // stand on the ground under any tree canopy, or on top of water
+            BlockPos top = w.getHeight(found);
+            while (top.getY() > 1) {
+                net.minecraft.block.material.Material m = w.getBlockState(top.down()).getMaterial();
+                if (m.isLiquid() || (m.blocksMovement() && m != net.minecraft.block.material.Material.LEAVES)) break;
+                top = top.down();
+            }
             log(biome.getBiomeName() + " found at " + top);
             EntityPlayerMP p = w.getMinecraftServer().getPlayerList().getPlayers().get(0);
             p.capabilities.isFlying = true;
