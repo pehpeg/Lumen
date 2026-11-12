@@ -60,6 +60,14 @@ public class LumenAutoTest {
 
     private void buildScenes() {
         Scene s;
+        // Third person + texture state left on the lightmap unit by "someone else", like F5/F1 in the field
+        s = new Scene("00_f5_messy_gl_cave", 18000, 0f, 8f, 260);
+        s.setup = () -> { messyGl = true; mc.gameSettings.thirdPersonView = 1; buildOreCave(); };
+        scenes.add(s);
+        s = new Scene("00b_f5_messy_gl_day", 6000, 0f, 5f, 200);
+        s.setup = () -> { teleportGround(spawn, 0f, 5f); };
+        scenes.add(s);
+
         s = new Scene("0a_shadows_morning", 2000, 180f, 28f, 220);
         s.setup = () -> { buildShadowTower(); teleportGround(spawn.add(-2, 0, 16), 180f, 28f); };
         scenes.add(s);
@@ -174,7 +182,25 @@ public class LumenAutoTest {
         }
     }
 
-    private void nextScene() { sceneIndex++; phase = 0; }
+    private void nextScene() {
+        sceneIndex++; phase = 0;
+        if (sceneIndex < scenes.size() && !scenes.get(sceneIndex).name.startsWith("00")) {
+            messyGl = false; mc.gameSettings.thirdPersonView = 0;
+        }
+    }
+
+    /** Simulates another renderer leaving GL state behind: particle sheet bound, lightmap unit active and enabled. */
+    private volatile boolean messyGl;
+
+    @SubscribeEvent(priority = net.minecraftforge.fml.common.eventhandler.EventPriority.HIGHEST)
+    public void onRenderLastMessy(net.minecraftforge.client.event.RenderWorldLastEvent e) {
+        if (!messyGl) return;
+        net.minecraft.client.renderer.GlStateManager.setActiveTexture(net.minecraft.client.renderer.OpenGlHelper.defaultTexUnit);
+        net.minecraft.client.renderer.GlStateManager.enableTexture2D();
+        mc.getTextureManager().bindTexture(new net.minecraft.util.ResourceLocation("textures/particle/particles.png"));
+        mc.entityRenderer.enableLightmap();
+        net.minecraft.client.renderer.GlStateManager.setActiveTexture(net.minecraft.client.renderer.OpenGlHelper.lightmapTexUnit);
+    }
 
     @SubscribeEvent
     public void onRenderTick(TickEvent.RenderTickEvent e) {
