@@ -1,6 +1,8 @@
 package com.lumen.mixin;
 
 import com.lumen.core.DynamicLightEngine;
+import com.lumen.core.SunShadowEngine;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.ChunkCache;
 import org.spongepowered.asm.mixin.Mixin;
@@ -14,7 +16,8 @@ public abstract class MixinChunkCache {
     @Inject(method = "getCombinedLight", at = @At("RETURN"), cancellable = true)
     private void lumen$dynamicLight(BlockPos pos, int lightValue, CallbackInfoReturnable<Integer> cir) {
         int v = cir.getReturnValueI();
-        int n = DynamicLightEngine.apply(pos, v);
+        int n = SunShadowEngine.apply((IBlockAccess) (Object) this, pos, v, true);
+        n = DynamicLightEngine.apply(pos, n);
         if (n != v) cir.setReturnValue(n);
     }
 }

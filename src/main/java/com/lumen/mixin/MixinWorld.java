@@ -1,6 +1,7 @@
 package com.lumen.mixin;
 
 import com.lumen.core.DynamicLightEngine;
+import com.lumen.core.SunShadowEngine;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
@@ -15,7 +16,8 @@ public abstract class MixinWorld {
     private void lumen$dynamicLight(BlockPos pos, int lightValue, CallbackInfoReturnable<Integer> cir) {
         if (!((World) (Object) this).isRemote) return;
         int v = cir.getReturnValueI();
-        int n = DynamicLightEngine.apply(pos, v);
+        int n = SunShadowEngine.apply((World) (Object) this, pos, v, false); // entities darken in shade too
+        n = DynamicLightEngine.apply(pos, n);
         if (n != v) cir.setReturnValue(n);
     }
 }

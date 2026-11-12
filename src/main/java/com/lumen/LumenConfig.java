@@ -54,6 +54,24 @@ public class LumenConfig {
     public static DynamicSpeed dynamicLightsSpeed = DynamicSpeed.FAST;
     public enum DynamicSpeed { SMOOTH, FAST, FASTEST }
 
+    @Config.Comment("Real cast shadows: trees, buildings and cliffs block the sun (traced through blocks when chunks are built, needs MixinBooter)")
+    public static boolean sunShadows = true;
+    @Config.Comment("How dark full shadow is (0 = none, 1 = deep)")
+    @Config.RangeDouble(min = 0, max = 1)
+    public static double shadowStrength = 0.8;
+    @Config.Comment("How far (in blocks) toward the sun to look for shadow casters. Longer = longer evening shadows, slower chunk building")
+    @Config.RangeInt(min = 8, max = 64)
+    public static int shadowDistance = 24;
+    @Config.Comment("Shadows move when the sun has moved this many degrees (smaller = smoother, more chunk rebuilding)")
+    @Config.RangeDouble(min = 2, max = 30)
+    public static double shadowUpdateDegrees = 6;
+    @Config.Comment("Chunk columns re-meshed per tick when shadows move (higher = faster update, more CPU)")
+    @Config.RangeInt(min = 1, max = 64)
+    public static int shadowRebuildRate = 6;
+    @Config.Comment("Shade lit only by the sky gets a cool blue tint, sunlit areas stay warm")
+    @Config.RangeDouble(min = 0, max = 1)
+    public static double shadeTint = 0.7;
+
     @Config.Comment("Lens flare when looking toward the sun (hidden when the sun is blocked)")
     public static boolean lensFlare = true;
 

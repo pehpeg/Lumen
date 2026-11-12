@@ -85,6 +85,8 @@ public class LumenLightmap {
         float moon = (float) LumenConfig.moonlightTint;
         float shadows = (float) LumenConfig.deepShadows;
         float shadowExp = 1f + 0.6f * shadows;
+        float dayShade = surface ? clamp01((sun - 0.45f) / 0.35f) : 0f;
+        float tint = (float) LumenConfig.shadeTint;
 
         for (int i = 0; i < 256; i++) {
             int sky = i / 16, block = i % 16;
@@ -108,6 +110,14 @@ public class LumenLightmap {
             r *= 1f - 0.40f * cool;
             g *= 1f - 0.15f * cool;
             b *= 1f + 0.35f * cool;
+
+            // Shade: in daylight, spots that only see part of the sky (cast shadows, tree shade,
+            // overhangs) are lit by blue sky instead of the sun - darker and cool.
+            float shade = dayShade * clamp01((15f - sky) / 5f) * clamp01(sky / 4f)
+                    * (1f - clamp01(blockLight * 1.4f)) * tint;
+            r *= 1f - 0.22f * shade;
+            g *= 1f - 0.08f * shade;
+            b *= 1f + 0.14f * shade;
 
             // Deeper shadows: push dim light darker, leave bright light alone (adds contrast).
             float lum = Math.max(r, Math.max(g, b));

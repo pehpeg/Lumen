@@ -60,7 +60,15 @@ public class LumenAutoTest {
 
     private void buildScenes() {
         Scene s;
-        scenes.add(new Scene("1_noon", 6000, 0f, 5f, 80));
+        s = new Scene("0a_shadows_morning", 2000, 180f, 28f, 220);
+        s.setup = () -> { buildShadowTower(); teleportGround(spawn.add(-2, 0, 16), 180f, 28f); };
+        scenes.add(s);
+        s = new Scene("0b_shadows_afternoon", 10000, 180f, 28f, 220);
+        s.setup = () -> teleportGround(spawn.add(-2, 0, 16), 180f, 28f);
+        scenes.add(s);
+        s = new Scene("1_noon", 6000, 0f, 5f, 160);
+        s.setup = () -> teleport(spawn, 0f, 5f);
+        scenes.add(s);
         scenes.add(new Scene("2_sunset", 12400, 90f, -8f, 80));
 
         s = new Scene("3_night_lights", 18000, 0f, 30f, 220);
@@ -154,7 +162,7 @@ public class LumenAutoTest {
             case 2:
                 look(s);
                 pendingShot = s.name + "_lumen_on";   // Lumen turns off right after this shot
-                wait = 40;
+                wait = 120;                           // time for chunks to re-mesh without shadows
                 phase = 3;
                 break;
             case 3:
@@ -179,7 +187,9 @@ public class LumenAutoTest {
                 + " | lightmap grades=" + LumenLightmap.gradeCount + " failed=" + LumenLightmap.failed
                 + " | halos=" + LumenWorldGlow.statGlows + " oreFaces=" + LumenWorldGlow.statOreFaces
                 + " oreMasks=" + OreMasks.built + " | " + LumenParticles.stats
-                + " | dynLights=" + LumenDynamicLights.statSources);
+                + " | dynLights=" + LumenDynamicLights.statSources
+                + " | shadowStep=" + LumenShadows.statStep + " pending=" + LumenShadows.statPending
+                + " rays=" + com.lumen.core.SunShadowEngine.tracedRays);
         if (onShot) LumenConfig.enabled = false;
         pendingShot = null;
     }
@@ -200,6 +210,15 @@ public class LumenAutoTest {
         });
     }
 
+    private void teleportGround(BlockPos at, float yaw, float pitch) {
+        onServer(w -> {
+            BlockPos g = w.getTopSolidOrLiquidBlock(at);
+            EntityPlayerMP p = w.getMinecraftServer().getPlayerList().getPlayers().get(0);
+            p.capabilities.isFlying = true;
+            p.connection.setPlayerLocation(g.getX() + 0.5, g.getY() + 1.5, g.getZ() + 0.5, yaw, pitch);
+        });
+    }
+
     private void placeNightLights() {
         BlockPos p = spawn;
         onServer(w -> {
@@ -210,6 +229,20 @@ public class LumenAutoTest {
             BlockPos l = w.getTopSolidOrLiquidBlock(p.add(-2, 0, 11)).down();
             w.setBlockState(l, Blocks.LAVA.getDefaultState());
             w.setBlockState(l.east(), Blocks.LAVA.getDefaultState());
+        });
+    }
+
+    /** A 3x3 stone tower with an overhang, a few blocks ahead of the shadow camera. */
+    private void buildShadowTower() {
+        onServer(w -> {
+            BlockPos base = w.getTopSolidOrLiquidBlock(spawn.add(0, 0, 6));
+            for (int y = 0; y < 8; y++)
+                for (int x = -1; x <= 1; x++)
+                    for (int z = -1; z <= 1; z++)
+                        w.setBlockState(base.add(x, y, z), Blocks.STONEBRICK.getDefaultState());
+            for (int x = 2; x <= 5; x++)
+                for (int z = -1; z <= 1; z++)
+                    w.setBlockState(base.add(x, 4, z), Blocks.STONEBRICK.getDefaultState());
         });
     }
 

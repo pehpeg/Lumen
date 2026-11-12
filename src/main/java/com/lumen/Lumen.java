@@ -3,6 +3,7 @@ package com.lumen;
 import com.lumen.client.LumenAtmosphere;
 import com.lumen.client.LumenAutoTest;
 import com.lumen.client.LumenDynamicLights;
+import com.lumen.client.LumenShadows;
 import com.lumen.client.LumenParticles;
 import com.lumen.client.LumenWorldGlow;
 import com.lumen.client.LumenLightmap;
@@ -37,6 +38,7 @@ public class Lumen {
         MinecraftForge.EVENT_BUS.register(new LumenWorldGlow());
         MinecraftForge.EVENT_BUS.register(new LumenParticles());
         MinecraftForge.EVENT_BUS.register(new LumenDynamicLights());
+        MinecraftForge.EVENT_BUS.register(new LumenShadows());
         if (LumenAutoTest.isEnabled()) MinecraftForge.EVENT_BUS.register(new LumenAutoTest());
     }
 }
