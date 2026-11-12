@@ -241,11 +241,11 @@ public class LumenAutoTest {
                 return;
             }
             w.getChunkProvider().provideChunk(found.getX() >> 4, found.getZ() >> 4); // load it first
-            BlockPos top = w.getHeight(found);
+            BlockPos top = w.getTopSolidOrLiquidBlock(found); // ground level, under any tree canopy
             log(biome.getBiomeName() + " found at " + top);
             EntityPlayerMP p = w.getMinecraftServer().getPlayerList().getPlayers().get(0);
             p.capabilities.isFlying = true;
-            p.connection.setPlayerLocation(top.getX() + 0.5, top.getY() + 3, top.getZ() + 0.5, 45f, 0f);
+            p.connection.setPlayerLocation(top.getX() + 0.5, top.getY() + 0.2, top.getZ() + 0.5, 45f, 0f);
         });
     }
 

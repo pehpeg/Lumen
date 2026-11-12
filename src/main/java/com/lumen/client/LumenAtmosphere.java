@@ -47,15 +47,15 @@ public class LumenAtmosphere {
 
     /** {r, g, b, fogStart} for a biome. */
     private static float[] target(Biome biome) {
-        if (BiomeDictionary.hasType(biome, Type.SWAMP))    return new float[]{0.80f, 0.92f, 0.66f, 0.55f};
+        if (BiomeDictionary.hasType(biome, Type.SWAMP))    return new float[]{0.86f, 0.94f, 0.76f, 0.65f};
         if (BiomeDictionary.hasType(biome, Type.SPOOKY))   return new float[]{0.80f, 0.86f, 0.80f, 0.60f};
         if (BiomeDictionary.hasType(biome, Type.MUSHROOM)) return new float[]{0.95f, 0.80f, 0.98f, 0.75f};
         if (BiomeDictionary.hasType(biome, Type.JUNGLE))   return new float[]{0.88f, 1.00f, 0.84f, 0.70f};
         if (BiomeDictionary.hasType(biome, Type.SNOWY))    return new float[]{0.90f, 0.95f, 1.00f, 0.80f};
-        if (BiomeDictionary.hasType(biome, Type.MESA))     return new float[]{1.00f, 0.84f, 0.68f, 0.80f};
+        if (BiomeDictionary.hasType(biome, Type.MESA))     return new float[]{1.00f, 0.90f, 0.80f, 0.95f};
         if (BiomeDictionary.hasType(biome, Type.SANDY)
                 || (BiomeDictionary.hasType(biome, Type.HOT) && BiomeDictionary.hasType(biome, Type.DRY)))
-                                                           return new float[]{1.00f, 0.90f, 0.72f, 0.80f};
+                                                           return new float[]{1.00f, 0.94f, 0.84f, 0.95f};
         if (BiomeDictionary.hasType(biome, Type.OCEAN))    return new float[]{0.92f, 0.97f, 1.00f, 1.00f};
         return new float[]{1f, 1f, 1f, 1f};
     }
