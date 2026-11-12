@@ -58,7 +58,7 @@ public class LumenConfig {
     public static boolean sunShadows = true;
     @Config.Comment("How dark full shadow is (0 = none, 1 = deep)")
     @Config.RangeDouble(min = 0, max = 1)
-    public static double shadowStrength = 0.8;
+    public static double shadowStrength = 0.6;
     @Config.Comment("How far (in blocks) toward the sun to look for shadow casters. Longer = longer evening shadows, slower chunk building")
     @Config.RangeInt(min = 8, max = 64)
     public static int shadowDistance = 24;
