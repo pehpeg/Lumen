@@ -303,16 +303,18 @@ public class BlockLighting {
             if (ndl > 0) {
                 double sx = px + face.getXOffset() * 0.01, sy = py + face.getYOffset() * 0.01, sz = pz + face.getZOffset() * 0.01;
                 float vis = Occlusion.walk(c.w, c.m, sx, sy, sz, vx, vy, vz, dist - 0.05, c.solidSource ? c.src : null);
-                lit = vis * (float) Math.min(1.0, 0.25 + ndl * 1.1);
+                // gentle angle falloff: shadows should come from blocks in the way, not from grazing light
+                lit = vis * (float) Math.min(1.0, 0.6 + ndl * 0.8);
             }
         }
         // color where the light arrives, darkening where it's blocked or the face turns away
         float tintAmt = c.k * tw * lit;
         float dark = c.shadowK * sw * (1f - lit);
+        float glow = 1f + 0.22f * tintAmt;          // surfaces the light reaches directly get a little brighter
         return new float[]{
-                Math.max(0f, 1f + tintAmt * (c.col[0] - 1f) - dark),
-                Math.max(0f, 1f + tintAmt * (c.col[1] - 1f) - dark),
-                Math.max(0f, 1f + tintAmt * (c.col[2] - 1f) - dark),
+                Math.max(0f, glow * (1f + tintAmt * (c.col[0] - 1f)) - dark),
+                Math.max(0f, glow * (1f + tintAmt * (c.col[1] - 1f)) - dark),
+                Math.max(0f, glow * (1f + tintAmt * (c.col[2] - 1f)) - dark),
                 lit};
     }
 
