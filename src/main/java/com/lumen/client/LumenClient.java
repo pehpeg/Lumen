@@ -49,7 +49,7 @@ public class LumenClient {
     final LightColors colors = new LightColors();
     final SectionScanner scanner = new SectionScanner(textures, colors);
     final DynamicLights dynamicLights = new DynamicLights(colors);
-    final ColoredLight coloredLight = new ColoredLight();
+    final BlockLighting blockLighting = new BlockLighting();
     final SunShadows shadows = new SunShadows();
 
     private int lastScanVersion = -1, lastDynVersion = -1, glowVersion = -1;
@@ -76,14 +76,13 @@ public class LumenClient {
         instance = new LumenClient();
         MinecraftForge.EVENT_BUS.register(instance);
         MinecraftForge.EVENT_BUS.register(instance.dynamicLights);
-        MinecraftForge.EVENT_BUS.register(new LumenLightmap());
         // resource packs changed: emissive textures and texture-derived colors must be re-read
         if (Minecraft.getMinecraft().getResourceManager() instanceof IReloadableResourceManager) {
             ((IReloadableResourceManager) Minecraft.getMinecraft().getResourceManager()).registerReloadListener(rm -> {
                 instance.textures.clear();
                 instance.colors.clearTextureCache();
                 instance.scanner.clearCaches();
-                instance.coloredLight.clear();
+                instance.blockLighting.clear();
                 instance.lastScanVersion = -1;
             });
         }
@@ -95,7 +94,7 @@ public class LumenClient {
         instance.colors.reloadConfig();
         instance.textures.clear();
         instance.scanner.clearCaches();
-        instance.coloredLight.clear();
+        instance.blockLighting.clear();
         instance.shadows.clear();
         instance.lastScanVersion = -1;
     }
@@ -122,9 +121,9 @@ public class LumenClient {
             if (scanner.version != lastScanVersion || dynamicLights.version != lastDynVersion) {
                 lastScanVersion = scanner.version;
                 lastDynVersion = dynamicLights.version;
-                coloredLight.update(scanner.colorLights(), dynamicLights.coloredEmitters());
+                blockLighting.update(scanner.colorLights(), dynamicLights.coloredEmitters());
             }
-            coloredLight.tick(3);
+            blockLighting.tick();
         }
         shadows.tick();
     }
@@ -134,7 +133,7 @@ public class LumenClient {
         @Override public void notifyBlockUpdate(World world, BlockPos pos, IBlockState oldState, IBlockState newState, int flags) {
             if (oldState == newState) return;
             scanner.markDirty(pos);
-            coloredLight.markDirty(pos);
+            blockLighting.markDirty(pos);
             shadows.markDirty(pos);
         }
         @Override public void notifyLightSet(BlockPos pos) {}
@@ -166,37 +165,17 @@ public class LumenClient {
         double cz = view.lastTickPosZ + (view.posZ - view.lastTickPosZ) * pt;
 
         long t0 = System.nanoTime();
-        LumenGl.prepare();
-        GlStateManager.disableLighting();
-        GlStateManager.disableAlpha();
-        GlStateManager.disableCull();
-        GlStateManager.enableDepth();
-        GlStateManager.depthFunc(GL11.GL_LEQUAL);
-        GlStateManager.depthMask(false);
-        GlStateManager.enablePolygonOffset();
-        GlStateManager.doPolygonOffset(-1f, -10f);
-        GlStateManager.shadeModel(GL11.GL_SMOOTH);
-
-        // 1) modulate layers: shadows and colored light (no fog: it would tint the multiplier)
-        GlStateManager.disableFog();
-        GlStateManager.enableBlend();
-        GlStateManager.blendFunc(SourceFactor.DST_COLOR, DestFactor.SRC_COLOR);   // 2x modulate: 0.5 = unchanged
-        if (LumenConfig.shadows.enabled) shadows.render(cx, cy, cz);
-        if (LumenConfig.colored.enabled) coloredLight.render(cx, cy, cz);
-        GlStateManager.enableFog();
-
-        // 2) glowing textures, full-bright
-        if (LumenConfig.emissive.enabled) drawEmissive(cx, cy, cz, pt);
-
-        GlStateManager.disablePolygonOffset();
-        GlStateManager.blendFunc(SourceFactor.SRC_ALPHA, DestFactor.ONE_MINUS_SRC_ALPHA);
-        GlStateManager.disableBlend();
-        GlStateManager.depthMask(true);
-        GlStateManager.enableCull();
-        GlStateManager.enableAlpha();
-        GlStateManager.shadeModel(GL11.GL_FLAT);
-        GlStateManager.color(1f, 1f, 1f, 1f);
-        LumenGl.finish();
+        GlSafe.begin();
+        try {
+            // 1) light and shadow layers (2x modulate)
+            GlSafe.modulate();
+            if (LumenConfig.shadows.enabled) shadows.render(cx, cy, cz);
+            if (LumenConfig.colored.enabled) blockLighting.render(cx, cy, cz);
+            // 2) glowing textures, full-bright
+            if (LumenConfig.emissive.enabled) drawEmissive(cx, cy, cz, pt);
+        } finally {
+            GlSafe.end();
+        }
         renderNanos += System.nanoTime() - t0; renderCount++;
     }
 
@@ -208,17 +187,13 @@ public class LumenClient {
             scanner.quadCount();
         }
         if (glowGroups.isEmpty()) return;
-        GlStateManager.enableTexture2D();
-        GlStateManager.enableBlend();
-        GlStateManager.blendFunc(SourceFactor.SRC_ALPHA, DestFactor.ONE_MINUS_SRC_ALPHA);
-        GlStateManager.enableAlpha();
-        GlStateManager.alphaFunc(GL11.GL_GREATER, 0.1f);
+        GlSafe.textured();
         float time = mc.world.getTotalWorldTime() + pt;
         boolean pulse = LumenConfig.emissive.pulse;
         Tessellator tess = Tessellator.getInstance();
         BufferBuilder buf = tess.getBuffer();
         for (Map.Entry<EmissiveTextures.Glow, List<SectionScanner.GlowQuad>> en : glowGroups.entrySet()) {
-            GlStateManager.bindTexture(en.getKey().textureId());
+            GL11.glBindTexture(GL11.GL_TEXTURE_2D, en.getKey().textureId());
             buf.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
             for (SectionScanner.GlowQuad q : en.getValue()) {
                 float c = pulse ? 0.88f + 0.12f * MathHelper.sin(time * 0.07f + (q.seed % 1000) * 0.37f) : 1f;
@@ -229,10 +204,6 @@ public class LumenClient {
             }
             tess.draw();
         }
-        GlStateManager.alphaFunc(GL11.GL_GREATER, 0.1f);
-        GlStateManager.disableAlpha();
-        GlStateManager.disableTexture2D();
-        GlStateManager.bindTexture(mc.getTextureMapBlocks().getGlTextureId());
     }
 
     // ---------------------------------------------------------------- toggle, hints, diagnostics
@@ -268,7 +239,7 @@ public class LumenClient {
         e.getLeft().add("");
         e.getLeft().add("[Lumen] " + (LumenConfig.enabled ? "ON" : "OFF")
                 + " | moving lights " + DynamicLights.statSources + (VirtualLights.hits > 0 ? " (engine OK)" : "")
-                + " | colored " + ColoredLight.statMeshes + " / " + ColoredLight.statQuads + "q"
+                + " | block light " + BlockLighting.statLights + " / " + BlockLighting.statQuads + "q"
                 + " | glow " + SectionScanner.statQuads + "q (" + EmissiveTextures.statPack + " pack, " + EmissiveTextures.statAuto + " auto)"
                 + " | shadows " + SunShadows.statQuads + "q, " + SunShadows.statPending + " pending");
         e.getLeft().add("[Lumen] " + timings());

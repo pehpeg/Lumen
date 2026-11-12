@@ -6,7 +6,7 @@ import net.minecraftforge.fml.client.event.ConfigChangedEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-@Config(modid = Lumen.MODID, name = "lumen")
+@Config(modid = Lumen.MODID, name = "lumen-lighting")
 public class LumenConfig {
 
     @Config.Comment("Master switch (toggle in-game with K)")
@@ -16,12 +16,10 @@ public class LumenConfig {
     public static DynamicLights dynamicLights = new DynamicLights();
     @Config.Name("emissive")
     public static Emissive emissive = new Emissive();
-    @Config.Name("colored_light")
+    @Config.Name("block_light")
     public static Colored colored = new Colored();
     @Config.Name("shadows")
     public static Shadows shadows = new Shadows();
-    @Config.Name("lighting")
-    public static Lighting lighting = new Lighting();
 
     public static class DynamicLights {
         @Config.Comment("Held torches, dropped glowing items, burning mobs, blazes, fireballs... light up the world.\n"
@@ -68,12 +66,23 @@ public class LumenConfig {
     }
 
     public static class Colored {
-        @Config.Comment("Colored light: torches warm orange, redstone red, sea lanterns cool, modded lamps in their own color...\n"
-                + "Unlisted light blocks get their color from their texture automatically.")
+        @Config.Comment("Better block light: colored light (torches orange, redstone red, sea lanterns cyan, modded lamps in\n"
+                + "their own color) and real shadows from torches and lamps - traced from each light through the blocks.")
         public boolean enabled = true;
         @Config.Comment("How strongly light colors tint the world (0..1)")
         @Config.RangeDouble(min = 0, max = 1)
         public double strength = 1.0;
+        @Config.Comment("Blocks cast shadows from torches, lamps and other lights")
+        public boolean shadows = true;
+        @Config.Comment("How dark the shadows of block lights are (0..1)")
+        @Config.RangeDouble(min = 0, max = 1)
+        public double shadowStrength = 0.8;
+        @Config.Comment("Shadow edge sharpness (1, 2, 4): faces a shadow edge crosses are traced on this grid")
+        @Config.RangeInt(min = 1, max = 4)
+        public int resolution = 2;
+        @Config.Comment("Max number of lights that get color and shadows (nearest first)")
+        @Config.RangeInt(min = 4, max = 128)
+        public int maxLights = 48;
         @Config.Comment("Colors as 'modid:block=RRGGBB' (overrides the automatic color)")
         public String[] colors = {
                 "minecraft:torch=FF8A2A", "minecraft:fire=FF7020", "minecraft:lava=FF5A10", "minecraft:flowing_lava=FF5A10",
@@ -110,15 +119,6 @@ public class LumenConfig {
         @Config.Comment("Shadows move when the sun has moved this many degrees")
         @Config.RangeDouble(min = 2, max = 30)
         public double updateDegrees = 5;
-    }
-
-    public static class Lighting {
-        @Config.Comment("Darker dim areas for more contrast (0 = vanilla)")
-        @Config.RangeDouble(min = 0, max = 1)
-        public double deepShadows = 0.3;
-        @Config.Comment("Blue moonlight at night (0 = vanilla)")
-        @Config.RangeDouble(min = 0, max = 1)
-        public double moonlight = 0.6;
     }
 
     @Mod.EventBusSubscriber(modid = Lumen.MODID)

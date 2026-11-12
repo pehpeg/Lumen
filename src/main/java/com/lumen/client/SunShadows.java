@@ -248,7 +248,7 @@ public class SunShadows {
     private static void emitFace(FloatList out, java.util.List<float[]> strips, ChunkCache cache, BlockPos.MutableBlockPos m, int x, int y, int z,
                                  EnumFacing f, int bx, int bz, double sx, double sy, double sz, int dist, int res) {
         double dot = f.getXOffset() * sx + f.getYOffset() * sy + f.getZOffset() * sz;
-        EnumFacing t1 = ColoredLight.tangent1(f), t2 = ColoredLight.tangent2(f);
+        EnumFacing t1 = Occlusion.tangent1(f), t2 = Occlusion.tangent2(f);
         // face origin: the block corner where both tangents are 0, on the face plane
         double ox = x + (f.getXOffset() > 0 ? 1 : 0), oy = y + (f.getYOffset() > 0 ? 1 : 0), oz = z + (f.getZOffset() > 0 ? 1 : 0);
         double nx = f.getXOffset(), ny = f.getYOffset(), nz = f.getZOffset();
@@ -320,33 +320,10 @@ public class SunShadows {
         }
     }
 
-    /** How much sun reaches this point (0 = blocked, 1 = clear): exact block-by-block ray walk. */
+    /** How much sun reaches this point (0 = blocked, 1 = clear). */
     private static float visibility(ChunkCache cache, BlockPos.MutableBlockPos m, double x, double y, double z,
                                     double dx, double dy, double dz, int dist) {
-        int bx = (int) Math.floor(x), by = (int) Math.floor(y), bz = (int) Math.floor(z);
-        int stepX = dx > 0 ? 1 : -1, stepY = dy > 0 ? 1 : -1, stepZ = dz > 0 ? 1 : -1;
-        double tdx = dx != 0 ? Math.abs(1 / dx) : Double.MAX_VALUE;
-        double tdy = dy != 0 ? Math.abs(1 / dy) : Double.MAX_VALUE;
-        double tdz = dz != 0 ? Math.abs(1 / dz) : Double.MAX_VALUE;
-        double tx = dx != 0 ? (dx > 0 ? bx + 1 - x : x - bx) * tdx : Double.MAX_VALUE;
-        double ty = dy != 0 ? (dy > 0 ? by + 1 - y : y - by) * tdy : Double.MAX_VALUE;
-        double tz = dz != 0 ? (dz > 0 ? bz + 1 - z : z - bz) * tdz : Double.MAX_VALUE;
-        float t = 1f;
-        while (true) {
-            double tNext;
-            if (tx < ty && tx < tz) { bx += stepX; tNext = tx; tx += tdx; }
-            else if (ty < tz) { by += stepY; tNext = ty; ty += tdy; }
-            else { bz += stepZ; tNext = tz; tz += tdz; }
-            if (tNext > dist || by > 255 || by < 0) return t;
-            IBlockState st = cache.getBlockState(m.setPos(bx, by, bz));
-            Material mat = st.getMaterial();
-            if (mat == Material.AIR) continue;
-            if (st.isOpaqueCube()) return 0f;
-            if (mat == Material.LEAVES) t *= 0.5f;
-            else if (mat.blocksMovement()) t *= 0.55f;     // fences, slabs, glass...
-            // grass, flowers, water...: no shadow (they'd only add noise)
-            if (t < 0.06f) return 0f;
-        }
+        return Occlusion.walk(cache, m, x, y, z, dx, dy, dz, dist, null);
     }
 
     // ---------------------------------------------------------------- main thread side
@@ -357,6 +334,7 @@ public class SunShadows {
         float[] v = c.verts;
         if (v == null || v.length == 0 || strength <= 0.01f) { freeList(c); c.quads = 0; return; }
         if (c.list < 0) c.list = GLAllocation.generateDisplayLists(1);
+        GlSafe.beforeCompile();
         Tessellator tess = Tessellator.getInstance();
         BufferBuilder buf = tess.getBuffer();
         GL11.glNewList(c.list, GL11.GL_COMPILE);

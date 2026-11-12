@@ -72,6 +72,9 @@ public class LumenAutoTest {
         s = new Scene("3_colored_lights", 18000, 260);
         s.setup = () -> setupColoredPlaza();
         scenes.add(s);
+        s = new Scene("3b_torch_shadows", 18000, 300);
+        s.setup = () -> setupTorchShadows();
+        scenes.add(s);
         s = new Scene("4_emissive_ores", 18000, 240);
         s.setup = () -> setupOreRoom();
         scenes.add(s);
@@ -169,7 +172,8 @@ public class LumenAutoTest {
         log("screenshot " + pendingShot + " at " + new BlockPos(mc.player)
                 + " | moving lights=" + DynamicLights.statSources + " relights=" + DynamicLights.statChecks
                 + " engineHits=" + VirtualLights.hits
-                + " | colored meshes=" + ColoredLight.statMeshes + " quads=" + ColoredLight.statQuads
+                + " | block lights=" + BlockLighting.statLights + " quads=" + BlockLighting.statQuads
+                + " pending=" + BlockLighting.statPending + " lastLightBuild=" + BlockLighting.statLastBuildMicros + "us"
                 + " | glow quads=" + SectionScanner.statQuads + " packTex=" + EmissiveTextures.statPack + " autoTex=" + EmissiveTextures.statAuto
                 + " | shadow quads=" + SunShadows.statQuads + " pending=" + SunShadows.statPending
                 + " lastColumnBuild=" + SunShadows.statLastBuildMicros + "us"
@@ -269,6 +273,30 @@ public class LumenAutoTest {
             p.connection.setPlayerLocation(g.getX() + 0.5, y + 7, g.getZ() + 9.5, 180f, 38f);
         });
         yaw = 180f; pitch = 38f;
+    }
+
+    /** One torch on a stone floor, surrounded by things that should cast shadows from it. */
+    private void setupTorchShadows() {
+        BlockPos at = spawn.add(-40, 0, -40);
+        onServer(w -> {
+            BlockPos g = dryGround(w, at);
+            int y = g.getY();
+            for (int x = -10; x <= 10; x++) for (int z = -10; z <= 10; z++) {
+                w.setBlockState(new BlockPos(g.getX() + x, y - 1, g.getZ() + z), Blocks.STONE.getDefaultState());
+                for (int h = 0; h < 8; h++) w.setBlockToAir(new BlockPos(g.getX() + x, y + h, g.getZ() + z));
+            }
+            w.setBlockState(g, Blocks.TORCH.getDefaultState());
+            for (int h = 0; h < 3; h++) w.setBlockState(g.add(2, h, -2), Blocks.STONEBRICK.getDefaultState());   // pillar
+            w.setBlockState(g.add(-2, 0, -1), Blocks.OAK_STAIRS.getDefaultState());                             // stairs
+            w.setBlockState(g.add(-3, 0, -1), Blocks.OAK_STAIRS.getDefaultState());
+            w.setBlockState(g.add(0, 0, 3), Blocks.STONE_SLAB.getDefaultState());                               // slab
+            for (int x = -2; x <= 1; x++) w.setBlockState(g.add(x, 0, -4), Blocks.COBBLESTONE.getDefaultState()); // low wall
+            w.setBlockState(g.add(3, 0, 2), Blocks.GRASS.getDefaultState());                                    // raised blocks
+            w.setBlockState(g.add(4, 0, 2), Blocks.GRASS.getDefaultState());
+            w.setBlockState(g.add(3, 0, 3), Blocks.GRASS.getDefaultState());
+            player(w).connection.setPlayerLocation(g.getX() + 0.5, y + 9, g.getZ() + 7.5, 180f, 52f);
+        });
+        yaw = 180f; pitch = 52f;
     }
 
     private void setupOreRoom() {
