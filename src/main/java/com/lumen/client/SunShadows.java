@@ -279,9 +279,9 @@ public class SunShadows {
         // a shadow edge crosses this face: refine adaptively down to 1/res (16 = pixel sharp)
         AdaptiveQuad.subdivide(res, 0, 0.06f,
                 (u, v) -> new float[]{shadeAt(cache, m, ox, oy, oz, t1, t2, nx, ny, nz, u, v, sx, sy, sz, dist, lambert)},
-                (s0, t0, s1, t1, qa, qb, qc, qd) -> {
+                (u0, v0, u1, v1, qa, qb, qc, qd) -> {
                     if (Math.max(Math.max(qa[0], qb[0]), Math.max(qc[0], qd[0])) < 0.03f) return;
-                    quad(out, ox, oy, oz, t1, t2, nx, ny, nz, s0, t0, s1, t1, qa[0], qb[0], qc[0], qd[0], bx, bz);
+                    quad(out, ox, oy, oz, t1, t2, nx, ny, nz, u0, v0, u1, v1, qa[0], qb[0], qc[0], qd[0], bx, bz);
                 });
     }
 
