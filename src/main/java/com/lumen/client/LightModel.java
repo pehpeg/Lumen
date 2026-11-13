@@ -94,9 +94,16 @@ final class LightModel {
             sk += w.getLightFor(EnumSkyBlock.SKY, m) * wgt;
             ws += wgt;
         }
-        if (ws < 1e-5f) {   // enclosed point: use its own cell
-            m.setPos((int) Math.floor(qx), (int) Math.floor(qy), (int) Math.floor(qz));
-            return new float[]{w.getLightFor(EnumSkyBlock.BLOCK, m), w.getLightFor(EnumSkyBlock.SKY, m)};
+        if (ws < 1e-5f) {   // enclosed point (inside a slab/path cell): brightest open neighbour, like vanilla does
+            int cx = (int) Math.floor(qx), cy = (int) Math.floor(qy), cz = (int) Math.floor(qz);
+            float b = 0, k = 0;
+            for (EnumFacing f : EnumFacing.VALUES) {
+                m.setPos(cx + f.getXOffset(), cy + f.getYOffset(), cz + f.getZOffset());
+                if (m.getY() < 0 || m.getY() > 255 || w.getBlockState(m).isOpaqueCube()) continue;
+                b = Math.max(b, w.getLightFor(EnumSkyBlock.BLOCK, m));
+                k = Math.max(k, w.getLightFor(EnumSkyBlock.SKY, m));
+            }
+            return new float[]{b, k};
         }
         return new float[]{bl / ws, sk / ws};
     }

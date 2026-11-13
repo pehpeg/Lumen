@@ -52,6 +52,7 @@ final class Shapes {
 
     private static final class Shape {
         final List<Quad> quads; final boolean translucent, model;
+        boolean soft;   // plants and clear glass: pixels dim the light instead of stopping it
         Shape(List<Quad> quads, boolean translucent, boolean model) { this.quads = quads; this.translucent = translucent; this.model = model; }
     }
 
@@ -94,6 +95,12 @@ final class Shapes {
             int c = mk.argb[iy * mk.w + ix];
             float a = (c >>> 24) / 255f;
             if (a < 0.1f) continue;                           // a gap: light goes through
+            if (s.soft) {                                     // thin plants / clear glass: dim per pixel hit
+                float k = 1f - 0.45f * a;
+                t[0] *= k; t[1] *= k; t[2] *= k;
+                if (Math.max(t[0], Math.max(t[1], t[2])) < 0.05f) return false;
+                continue;
+            }
             if (!s.translucent) {
                 if (a >= 0.5f) return false;                  // an opaque pixel stops it
                 continue;
@@ -139,7 +146,11 @@ final class Shapes {
         } catch (Throwable e) {
             return new Shape(new ArrayList<>(), translucent, false);
         }
-        return new Shape(out, translucent, true);
+        Shape shape = new Shape(out, translucent, true);
+        net.minecraft.block.material.Material mat = st.getMaterial();
+        shape.soft = !translucent && (mat == net.minecraft.block.material.Material.GLASS
+                || (!mat.blocksMovement() && mat != net.minecraft.block.material.Material.LEAVES));
+        return shape;
     }
 
     private static Mask mask(TextureAtlasSprite sp) {
