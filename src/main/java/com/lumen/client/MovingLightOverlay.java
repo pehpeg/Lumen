@@ -159,7 +159,7 @@ public class MovingLightOverlay {
             double dx = p.getX() + 0.5 - me.x, dy = p.getY() + 0.5 - me.y, dz = p.getZ() + 0.5 - me.z;
             if (dx * dx + dy * dy + dz * dz > reach2 + 2) continue;
             IBlockState st = w.getBlockState(p);
-            if (st.getMaterial() == Material.AIR) continue;
+            if (st.getMaterial() == Material.AIR || st.getLightValue(w, p) > 0) continue;   // glowing blocks stay as they are
             BlockPos at = p.toImmutable();
             ModelQuads.forEach(w, at, st, q -> AdaptiveQuad.subdivide(res, 3, 0.5f,
                     (s, t) -> sample(w, m, model, me, meList, near, q, ModelQuads.at(q, s, t)),
@@ -198,7 +198,8 @@ public class MovingLightOverlay {
             double[] pt = ModelQuads.at(q, st[i][0], st[i][1]);
             float[] tc = ModelQuads.uvAt(q, st[i][0], st[i][1]);
             out.add((float) (pt[0] + q.n[0] * 0.003 - ox), (float) (pt[1] + q.n[1] * 0.003 - oy), (float) (pt[2] + q.n[2] * 0.003 - oz),
-                    tc[0], tc[1], Math.max(0f, col[i][0]), Math.max(0f, col[i][1]), Math.max(0f, col[i][2]));
+                    tc[0], tc[1], Math.max(0f, col[i][0] * q.tr * q.shade), Math.max(0f, col[i][1] * q.tg * q.shade),
+                    Math.max(0f, col[i][2] * q.tb * q.shade));
         }
     }
 

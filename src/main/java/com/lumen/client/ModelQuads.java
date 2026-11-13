@@ -31,6 +31,8 @@ final class ModelQuads {
         final float[][] uv = new float[4][2];
         final double[] n = new double[3], ctr = new double[3];
         boolean twoSided;
+        /** biome tint (grass, leaves, water...) and vanilla's per-face shading, for added light */
+        float tr = 1, tg = 1, tb = 1, shade = 1;
     }
 
     private static final EnumFacing[] SIDES_AND_NULL = {EnumFacing.DOWN, EnumFacing.UP, EnumFacing.NORTH,
@@ -52,7 +54,21 @@ final class ModelQuads {
                 if (side != null && !actual.shouldSideBeRendered(w, p, side)) continue;
                 for (BakedQuad bq : model.getQuads(ext, side, rand)) {
                     Q q = convert(bq, p, off, seen);
-                    if (q != null) { q.twoSided = twoSided; out.accept(q); }
+                    if (q == null) continue;
+                    q.twoSided = twoSided;
+                    if (bq.hasTintIndex()) {
+                        int c = Minecraft.getMinecraft().getBlockColors().colorMultiplier(actual, w, p, bq.getTintIndex());
+                        q.tr = ((c >> 16) & 0xFF) / 255f; q.tg = ((c >> 8) & 0xFF) / 255f; q.tb = (c & 0xFF) / 255f;
+                    }
+                    if (bq.shouldApplyDiffuseLighting()) {
+                        switch (bq.getFace()) {
+                            case DOWN: q.shade = 0.5f; break;
+                            case NORTH: case SOUTH: q.shade = 0.8f; break;
+                            case WEST: case EAST: q.shade = 0.6f; break;
+                            default: q.shade = 1f;
+                        }
+                    }
+                    out.accept(q);
                 }
             }
         } catch (Throwable ignored) {

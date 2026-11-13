@@ -212,7 +212,7 @@ public class BlockLightSections {
         for (int x = 0; x < 16; x++) for (int y = 0; y < 16; y++) for (int z = 0; z < 16; z++) {
             p.setPos(ox + x, oy + y, oz + z);
             IBlockState st = w.getBlockState(p);
-            if (st.getMaterial() == Material.AIR) continue;
+            if (st.getMaterial() == Material.AIR || st.getLightValue(w, p) > 0) continue;   // glowing blocks stay as they are
             // any light close enough to matter?
             boolean any = false;
             for (LightModel.Light l : near) {
