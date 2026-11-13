@@ -34,8 +34,9 @@ import java.util.Map;
 public class LumenClient {
 
     private static LumenClient instance;
-    /** Only the automated test switches this off (for its comparison screenshots). */
+    /** Lumen on/off: the toggle key (default K), and the automated test's comparison screenshots. */
     static boolean active = true;
+    private static net.minecraft.client.settings.KeyBinding toggleKey;
     private final Minecraft mc = Minecraft.getMinecraft();
 
     final EmissiveTextures textures = new EmissiveTextures();
@@ -63,6 +64,8 @@ public class LumenClient {
     }
 
     public static void init() {
+        toggleKey = new net.minecraft.client.settings.KeyBinding("key.lumen.toggle", org.lwjgl.input.Keyboard.KEY_K, "key.categories.lumen");
+        net.minecraftforge.fml.client.registry.ClientRegistry.registerKeyBinding(toggleKey);
         instance = new LumenClient();
         MinecraftForge.EVENT_BUS.register(instance);
         MinecraftForge.EVENT_BUS.register(instance.dynamicLights);
@@ -142,6 +145,14 @@ public class LumenClient {
     }
 
     // ---------------------------------------------------------------- rendering
+
+    @SubscribeEvent
+    public void onKey(net.minecraftforge.fml.common.gameevent.InputEvent.KeyInputEvent e) {
+        if (toggleKey == null || !toggleKey.isPressed()) return;
+        active = !active;
+        if (mc.player != null) mc.player.sendStatusMessage(new net.minecraft.util.text.TextComponentString(
+                "Lumen: " + (active ? "\u00a7aON" : "\u00a7cOFF")), true);
+    }
 
     @SubscribeEvent
     public void onRenderLast(RenderWorldLastEvent e) {

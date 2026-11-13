@@ -20,6 +20,8 @@ own light engine or draws its own layer, so it works no matter which chunk rende
   background thread; partial blocks (slabs, stairs, fences) shade by their shape; faces turned from
   the sun are shaded; shade is slightly cool like sky light.
 
+Press **K** to turn Lumen on and off (rebindable in Controls → Lumen).
+
 **Requires [MixinBooter](https://www.curseforge.com/minecraft/mc-mods/mixin-booter).** Settings: `config/lumen-lighting.cfg`.
 
 ## Building / testing
