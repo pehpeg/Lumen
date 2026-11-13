@@ -22,7 +22,7 @@ import java.util.List;
 final class LightModel {
 
     /** Light falls off by this many levels per block of straight-line distance. */
-    static final float FALLOFF = 1.2f;
+    static final float FALLOFF = 1.0f;   // same reach as vanilla along the axes; round instead of diamond
 
     static final class Light {
         final double x, y, z;        // where the light is emitted
@@ -72,7 +72,7 @@ final class LightModel {
             EnumFacing f = state.getValue(BlockTorch.FACING);
             if (f.getAxis().isHorizontal()) { x -= f.getXOffset() * 0.27; y += 0.22; z -= f.getZOffset() * 0.27; }
         } else if (state.getMaterial() == Material.LAVA) {
-            y = p.getY() + 0.9;
+            y = p.getY() + 1.15;   // just above the surface: lava is usually flush with the ground around it
         }
         return new double[]{x, y, z};
     }
@@ -121,7 +121,7 @@ final class LightModel {
                 float vis = ndl > 0 ? Occlusion.walk(w, m, sx, sy, sz, vx, vy, vz, dist - 0.05, l.block) : 0f;
                 open = vis > 0.5f;
                 if (vis > 0) {
-                    float b = bright(lev) * vis * (float) Math.min(1.0, 0.6 + ndl * 0.8);
+                    float b = bright(lev) * vis * (float) Math.min(1.0, 0.82 + ndl * 0.3);   // gentle: grazing floors stay lit
                     if (b > best) best = b;
                     cr += b * l.col[0]; cg += b * l.col[1]; cb += b * l.col[2]; ws += b;
                 }

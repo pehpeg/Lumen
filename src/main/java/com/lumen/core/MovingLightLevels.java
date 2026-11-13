@@ -7,7 +7,7 @@ package com.lumen.core;
 public final class MovingLightLevels {
     private MovingLightLevels() {}
 
-    public static final float FALLOFF = 1.2f;
+    public static final float FALLOFF = 1.0f;
     /** Flat {x, y, z, level} per light. Replaced atomically, never mutated. */
     private static volatile double[] sources = new double[0];
 

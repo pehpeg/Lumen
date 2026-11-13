@@ -242,6 +242,7 @@ public class BlockLightSections {
         float cr = 1, cg = 1, cb = 1;
         if (li[4] > 1e-5f) { cr = li[1] / li[4]; cg = li[2] / li[4]; cb = li[3] / li[4]; }
         float amt = Math.min(1f, model.k * bt / (bb + bs + 1e-4f));
+        ratio *= 1f + 0.25f * amt;                                  // a little glow where colored light lands
         return new float[]{
                 Math.min(1.95f, ratio * (1f + amt * (cr - 1f))),
                 Math.min(1.95f, ratio * (1f + amt * (cg - 1f))),
