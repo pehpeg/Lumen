@@ -324,7 +324,7 @@ public class BlockLighting {
             return;
         }
         // a shadow edge crosses this quad: refine adaptively down to 1/res (16 = pixel sharp)
-        AdaptiveQuad.subdivide(c.res, 3, 0.08f,
+        AdaptiveQuad.subdivide(c.res, 4, 0.5f,
                 (u, v) -> sample(c, bilerp(pos, u, v), ctr, n, twoSided),
                 (s0, t0, s1, t1, qa, qb, qc, qd) -> emit(c, out, pos, uv, s0, t0, s1, t1, qa, qb, qc, qd));
     }
@@ -353,13 +353,13 @@ public class BlockLighting {
         double sz = pt[2] + n[2] * 0.02 + (ctr[2] - pt[2]) * 0.004;
         double vx = c.lx - sx, vy = c.ly - sy, vz = c.lz - sz;
         double dist = Math.sqrt(vx * vx + vy * vy + vz * vz);
-        float lit = 0f;
+        float lit = 0f, vis = 0f;
         if (dist > 1e-4) {
             vx /= dist; vy /= dist; vz /= dist;
             double ndl = n[0] * vx + n[1] * vy + n[2] * vz;
             if (twoSided) ndl = Math.abs(ndl);
             if (ndl > 0) {
-                float vis = Occlusion.walk(c.w, c.m, sx, sy, sz, vx, vy, vz, dist - 0.05, c.src);
+                vis = Occlusion.walk(c.w, c.m, sx, sy, sz, vx, vy, vz, dist - 0.05, c.src);
                 lit = vis * (float) Math.min(1.0, 0.6 + ndl * 0.8);
             }
         }
@@ -386,7 +386,8 @@ public class BlockLighting {
                 Math.max(0f, glow * (1f + tintAmt * (c.col[0] - 1f)) - dark),
                 Math.max(0f, glow * (1f + tintAmt * (c.col[1] - 1f)) - dark),
                 Math.max(0f, glow * (1f + tintAmt * (c.col[2] - 1f)) - dark),
-                lit};
+                lit,
+                vis > 0.5f ? 1f : 0f};   // refine only where the light is actually blocked (a real shadow edge)
     }
 
     private static void emit(Ctx c, FloatList out, double[][] pos, float[][] uv, double s0, double t0, double s1, double t1,

@@ -277,8 +277,12 @@ public class SunShadows {
             return;
         }
         // a shadow edge crosses this face: refine adaptively down to 1/res (16 = pixel sharp)
-        AdaptiveQuad.subdivide(res, 0, 0.06f,
-                (u, v) -> new float[]{shadeAt(cache, m, ox, oy, oz, t1, t2, nx, ny, nz, u, v, sx, sy, sz, dist, lambert)},
+        // refine only where something solid blocks the sun (a hard edge); leaf dappling stays a gradient
+        AdaptiveQuad.subdivide(res, 1, 0.5f,
+                (u, v) -> {
+                    float sh = shadeAt(cache, m, ox, oy, oz, t1, t2, nx, ny, nz, u, v, sx, sy, sz, dist, lambert);
+                    return new float[]{sh, sh > 1f - lambert * 0.5f ? 1f : 0f};
+                },
                 (u0, v0, u1, v1, qa, qb, qc, qd) -> {
                     if (Math.max(Math.max(qa[0], qb[0]), Math.max(qc[0], qd[0])) < 0.03f) return;
                     quad(out, ox, oy, oz, t1, t2, nx, ny, nz, u0, v0, u1, v1, qa[0], qb[0], qc[0], qd[0], bx, bz);
