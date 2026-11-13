@@ -150,7 +150,7 @@ public class SectionScanner {
                 boolean buried = state.getMaterial() == Material.LAVA && !w.isAirBlock(p.up());  // only lava surfaces
                 if (light >= 5 && !buried && com.lumen.core.VirtualLights.emission(w, p) < light) {  // not one of our moving lights
                     int rgb = colors.colorOf(state, w, p);
-                    if (rgb != LightColors.WHITE) s.lights.add(new ColorLight(p.toImmutable(), light, rgb));
+                    s.lights.add(new ColorLight(p.toImmutable(), light, rgb));   // white lights cast shadows too
                 }
             }
             if (wantGlow) {

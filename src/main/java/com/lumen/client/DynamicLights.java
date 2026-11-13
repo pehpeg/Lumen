@@ -55,16 +55,6 @@ public class DynamicLights {
 
     public DynamicLights(LightColors colors) { this.colors = colors; reloadConfig(); }
 
-    /** {pos, level, rgb} for every moving light that has a color. */
-    public java.util.List<long[]> coloredEmitters() {
-        java.util.List<long[]> out = new java.util.ArrayList<>();
-        for (Map.Entry<Long, Integer> en : active.entrySet()) {
-            Integer rgb = activeColors.get(en.getKey());
-            if (rgb != null && rgb != LightColors.WHITE) out.add(new long[]{en.getKey(), en.getValue(), rgb});
-        }
-        return out;
-    }
-
     /** Increases whenever the moving lights change. */
     public int version;
 
@@ -95,10 +85,17 @@ public class DynamicLights {
         }
         if (world == null || mc.player == null) return;
         boolean on = LumenClient.active && LumenConfig.dynamicLights.enabled;
-        if (on && ++ticks % LumenConfig.dynamicLights.updateInterval != 0) return;
+        // with Lumen's block light on, moving lights are drawn smoothly by MovingLightOverlay and
+        // light entities through MovingLightLevels; the light engine path is the fallback
+        boolean overlay = on && LumenConfig.colored.enabled;
+        moving = overlay ? collectMoving(world) : new java.util.ArrayList<>();
+        double[] flat = new double[moving.size() * 4];
+        for (int k = 0; k < moving.size(); k++) System.arraycopy(moving.get(k), 1, flat, k * 4, 4);
+        com.lumen.core.MovingLightLevels.publish(flat);
+        if (on && !overlay && ++ticks % LumenConfig.dynamicLights.updateInterval != 0) return;
 
         wantedColors = new HashMap<>();
-        Map<Long, Integer> wanted = on ? collect(world) : new HashMap<>();
+        Map<Long, Integer> wanted = (on && !overlay) ? collect(world) : new HashMap<>();
         if (wanted.equals(active) && wantedColors.equals(activeColors)) return;
         version++;
 
@@ -171,6 +168,29 @@ public class DynamicLights {
             if (prev == null || prev < (int) f[2]) { out.put(key, (int) f[2]); wantedColors.put(key, (int) f[3]); }
         }
         return out;
+    }
+
+    private java.util.List<double[]> moving = new java.util.ArrayList<>();
+
+    /** {entityId, x, y, z, level, rgb} per moving light, nearest first (overlay mode). */
+    public java.util.List<double[]> moving() { return moving; }
+
+    private java.util.List<double[]> collectMoving(World world) {
+        Entity viewer = mc.getRenderViewEntity() != null ? mc.getRenderViewEntity() : mc.player;
+        double range2 = (double) LumenConfig.dynamicLights.range * LumenConfig.dynamicLights.range;
+        java.util.List<double[]> found = new java.util.ArrayList<>();
+        for (Entity en : world.loadedEntityList) {
+            if (en.isDead) continue;
+            double d2 = en.getDistanceSq(viewer);
+            if (d2 > range2) continue;
+            int lum = luminance(en);
+            if (lum <= 0) continue;
+            double y = en.posY + Math.min(en.getEyeHeight() * 0.85, en.height * 0.75);
+            found.add(new double[]{en.getEntityId(), en.posX, y, en.posZ, lum, colorOf(en), d2});
+        }
+        found.sort((a, b) -> Double.compare(a[6], b[6]));
+        int max = LumenConfig.dynamicLights.maxSources;
+        return found.size() > max ? new java.util.ArrayList<>(found.subList(0, max)) : found;
     }
 
     /** Where the light sits: the entity's head (or body) block, as long as light can exist there. */

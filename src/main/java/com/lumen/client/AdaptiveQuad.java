@@ -55,6 +55,16 @@ public final class AdaptiveQuad {
                 node(i0, j0 + h, h, n, key, thr, s, e, cache);
                 return;
             }
+        } else {
+            // finest cell on an edge: one flat value (its center), so the edge is a hard pixel step
+            // instead of a one-cell blend
+            float lo = Math.min(Math.min(a[key], b[key]), Math.min(c[key], d[key]));
+            float hi = Math.max(Math.max(a[key], b[key]), Math.max(c[key], d[key]));
+            if (hi - lo > thr) {
+                float[] m = s.at((i0 + 0.5) / n, (j0 + 0.5) / n);
+                e.quad(i0 / (double) n, j0 / (double) n, (i0 + 1) / (double) n, (j0 + 1) / (double) n, m, m, m, m);
+                return;
+            }
         }
         e.quad(i0 / (double) n, j0 / (double) n, (i0 + size) / (double) n, (j0 + size) / (double) n, a, b, c, d);
     }

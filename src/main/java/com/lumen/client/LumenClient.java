@@ -43,10 +43,11 @@ public class LumenClient {
     final LightColors colors = new LightColors();
     final SectionScanner scanner = new SectionScanner(textures, colors);
     final DynamicLights dynamicLights = new DynamicLights(colors);
-    final BlockLighting blockLighting = new BlockLighting();
+    final BlockLightSections blockLight = new BlockLightSections();
+    final MovingLightOverlay movingLights = new MovingLightOverlay();
     final SunShadows shadows = new SunShadows();
 
-    private int lastScanVersion = -1, lastDynVersion = -1, glowVersion = -1;
+    private int lastScanVersion = -1, glowVersion = -1;
     private final Map<EmissiveTextures.Glow, List<SectionScanner.GlowQuad>> glowGroups = new IdentityHashMap<>();
     private World listenedWorld;
 
@@ -75,7 +76,8 @@ public class LumenClient {
                 instance.textures.clear();
                 instance.colors.clearTextureCache();
                 instance.scanner.clearCaches();
-                instance.blockLighting.clear();
+                instance.blockLight.clear();
+                instance.movingLights.clear();
                 instance.lastScanVersion = -1;
             });
         }
@@ -87,7 +89,8 @@ public class LumenClient {
         instance.colors.reloadConfig();
         instance.textures.clear();
         instance.scanner.clearCaches();
-        instance.blockLighting.clear();
+        instance.blockLight.clear();
+                instance.movingLights.clear();
         instance.shadows.clear();
         instance.lastScanVersion = -1;
     }
@@ -110,12 +113,13 @@ public class LumenClient {
     private void tickFeatures() {
         scanner.tick(8);
         if (LumenConfig.colored.enabled) {
-            if (scanner.version != lastScanVersion || dynamicLights.version != lastDynVersion) {
+            if (scanner.version != lastScanVersion) {
                 lastScanVersion = scanner.version;
-                lastDynVersion = dynamicLights.version;
-                blockLighting.update(scanner.colorLights(), dynamicLights.coloredEmitters());
+                blockLight.update(scanner.colorLights());
             }
-            blockLighting.tick();
+            blockLight.tick();
+            movingLights.update(dynamicLights.moving());
+            movingLights.tick(blockLight);
         }
         shadows.tick();
     }
@@ -125,7 +129,7 @@ public class LumenClient {
         @Override public void notifyBlockUpdate(World world, BlockPos pos, IBlockState oldState, IBlockState newState, int flags) {
             if (oldState == newState) return;
             scanner.markDirty(pos);
-            blockLighting.markDirty(pos);
+            blockLight.markDirty(pos);
             shadows.markDirty(pos);
         }
         @Override public void notifyLightSet(BlockPos pos) {}
@@ -171,8 +175,11 @@ public class LumenClient {
             GlSafe.modulate();
             if (LumenConfig.shadows.enabled) shadows.render(cx, cy, cz);
             if (LumenConfig.colored.enabled) {
-                GlSafe.modulateCutout(mc.getTextureMapBlocks().getGlTextureId());
-                blockLighting.render(cx, cy, cz);
+                int atlas = mc.getTextureMapBlocks().getGlTextureId();
+                GlSafe.modulateCutout(atlas);
+                blockLight.render(cx, cy, cz);
+                GlSafe.additive(atlas);          // moving lights add their light on top
+                movingLights.render(cx, cy, cz);
             }
             // 2) glowing textures, full-bright
             if (LumenConfig.emissive.enabled) drawEmissive(cx, cy, cz, pt);

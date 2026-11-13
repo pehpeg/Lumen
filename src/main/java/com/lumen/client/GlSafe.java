@@ -73,6 +73,16 @@ public final class GlSafe {
         GL11.glBlendFunc(GL11.GL_DST_COLOR, GL11.GL_SRC_COLOR);
     }
 
+    /** Additive light: block texture x vertex color added on top (moving lights). */
+    public static void additive(int atlasTexture) {
+        GL11.glEnable(GL11.GL_TEXTURE_2D);
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, atlasTexture);
+        GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, GL11.GL_MODULATE);
+        GL11.glEnable(GL11.GL_ALPHA_TEST);
+        GL11.glAlphaFunc(GL11.GL_GREATER, 0.1f);
+        GL11.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE);
+    }
+
     /** Textured, alpha-blended, alpha-tested drawing (glowing textures). Binds with raw GL. */
     public static void textured() {
         GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, GL11.GL_MODULATE);

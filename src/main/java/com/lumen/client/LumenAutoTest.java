@@ -175,8 +175,11 @@ public class LumenAutoTest {
         log("screenshot " + pendingShot + " at " + new BlockPos(mc.player)
                 + " | moving lights=" + DynamicLights.statSources + " relights=" + DynamicLights.statChecks
                 + " engineHits=" + VirtualLights.hits
-                + " | block lights=" + BlockLighting.statLights + " quads=" + BlockLighting.statQuads
-                + " pending=" + BlockLighting.statPending + " lastLightBuild=" + BlockLighting.statLastBuildMicros + "us"
+                + " | block lights=" + BlockLightSections.statLights + " sections=" + BlockLightSections.statSections
+                + " quads=" + BlockLightSections.statQuads + " pending=" + BlockLightSections.statPending
+                + " lastSection=" + BlockLightSections.statLastBuildMicros + "us"
+                + " | movingLayers=" + MovingLightOverlay.statSources + " quads=" + MovingLightOverlay.statQuads
+                + " lastMoving=" + MovingLightOverlay.statLastBuildMicros + "us"
                 + " | glow quads=" + SectionScanner.statQuads + " packTex=" + EmissiveTextures.statPack + " autoTex=" + EmissiveTextures.statAuto
                 + " | shadow quads=" + SunShadows.statQuads + " pending=" + SunShadows.statPending
                 + " lastColumnBuild=" + SunShadows.statLastBuildMicros + "us"
