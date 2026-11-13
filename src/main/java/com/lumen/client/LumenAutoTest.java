@@ -75,6 +75,9 @@ public class LumenAutoTest {
         s = new Scene("3b_torch_shadows", 18000, 300);
         s.setup = () -> setupTorchShadows();
         scenes.add(s);
+        s = new Scene("3c_stairs_grass", 18000, 300);
+        s.setup = () -> setupStairsGrass();
+        scenes.add(s);
         s = new Scene("4_emissive_ores", 18000, 240);
         s.setup = () -> setupOreRoom();
         scenes.add(s);
@@ -297,6 +300,30 @@ public class LumenAutoTest {
             player(w).connection.setPlayerLocation(g.getX() + 0.5, y + 9, g.getZ() + 7.5, 180f, 52f);
         });
         yaw = 180f; pitch = 52f;
+    }
+
+    /** Like the player's screenshot: torch in tall grass, a 2x2 group of stairs in front, a path behind. */
+    private void setupStairsGrass() {
+        BlockPos at = spawn.add(-40, 0, 40);
+        onServer(w -> {
+            BlockPos g = dryGround(w, at);
+            int y = g.getY();
+            for (int x = -9; x <= 9; x++) for (int z = -9; z <= 9; z++) {
+                BlockPos f = new BlockPos(g.getX() + x, y - 1, g.getZ() + z);
+                w.setBlockState(f, (z >= 4 && Math.abs(x) <= 2) ? Blocks.GRASS_PATH.getDefaultState() : Blocks.GRASS.getDefaultState());
+                for (int h = 0; h < 8; h++) w.setBlockToAir(f.up(h + 1));
+                if ((x * 7 + z * 13) % 3 != 0 && !(z >= 1 && z <= 3 && x >= -1 && x <= 1) && !(z >= 4 && Math.abs(x) <= 2) && !(x == 0 && z == 0))
+                    w.setBlockState(f.up(), Blocks.TALLGRASS.getStateFromMeta(1));
+            }
+            w.setBlockState(g, Blocks.TORCH.getDefaultState());
+            net.minecraft.block.state.IBlockState stairs = Blocks.OAK_STAIRS.getDefaultState();
+            w.setBlockState(g.add(-1, 0, 1), stairs.withProperty(net.minecraft.block.BlockStairs.FACING, net.minecraft.util.EnumFacing.EAST));
+            w.setBlockState(g.add(0, 0, 1), stairs.withProperty(net.minecraft.block.BlockStairs.FACING, net.minecraft.util.EnumFacing.WEST));
+            w.setBlockState(g.add(-1, 0, 2), stairs.withProperty(net.minecraft.block.BlockStairs.FACING, net.minecraft.util.EnumFacing.NORTH));
+            w.setBlockState(g.add(0, 0, 2), stairs.withProperty(net.minecraft.block.BlockStairs.FACING, net.minecraft.util.EnumFacing.NORTH));
+            player(w).connection.setPlayerLocation(g.getX() + 0.0, y + 5, g.getZ() + 7.5, 180f, 40f);
+        });
+        yaw = 180f; pitch = 40f;
     }
 
     private void setupOreRoom() {

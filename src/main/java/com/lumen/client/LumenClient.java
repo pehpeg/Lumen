@@ -170,7 +170,10 @@ public class LumenClient {
             // 1) light and shadow layers (2x modulate)
             GlSafe.modulate();
             if (LumenConfig.shadows.enabled) shadows.render(cx, cy, cz);
-            if (LumenConfig.colored.enabled) blockLighting.render(cx, cy, cz);
+            if (LumenConfig.colored.enabled) {
+                GlSafe.modulateCutout(mc.getTextureMapBlocks().getGlTextureId());
+                blockLighting.render(cx, cy, cz);
+            }
             // 2) glowing textures, full-bright
             if (LumenConfig.emissive.enabled) drawEmissive(cx, cy, cz, pt);
         } finally {

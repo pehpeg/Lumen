@@ -73,10 +73,11 @@ public class LumenConfig {
         public boolean shadows = true;
         @Config.Comment("How dark the shadows of block lights are (0..1)")
         @Config.RangeDouble(min = 0, max = 1)
-        public double shadowStrength = 0.8;
-        @Config.Comment("Shadow edge sharpness (1, 2, 4): faces a shadow edge crosses are traced on this grid")
-        @Config.RangeInt(min = 1, max = 4)
-        public int resolution = 2;
+        public double shadowStrength = 0.85;
+        @Config.Comment("Shadow edge sharpness: surfaces a shadow edge crosses are traced on an N x N grid\n"
+                + "(4 = quarter-block edges, 8 = eighth-block). Costs background-thread time only.")
+        @Config.RangeInt(min = 1, max = 8)
+        public int resolution = 4;
         @Config.Comment("Max number of lights that get color and shadows (nearest first)")
         @Config.RangeInt(min = 4, max = 128)
         public int maxLights = 48;
