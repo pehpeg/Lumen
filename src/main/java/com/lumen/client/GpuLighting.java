@@ -531,6 +531,16 @@ public final class GpuLighting {
 
     private int statMovingSections, statMovingLights, statGeoReady;
 
+    /** Test diagnostics: what the GPU path knows about the section containing p. */
+    String debugAt(BlockPos p) {
+        if (vol == null) return "gpu:no-volume";
+        int sx = p.getX() >> 4, sy = p.getY() >> 4, sz = p.getZ() >> 4;
+        Geo g = geos.get(VoxelVolume.key(sx, sy, sz));
+        return "gpu[eligible=" + vol.eligible(sx, sy, sz) + " volReady=" + vol.ready(sx, sy, sz)
+                + (g == null ? " geo=none" : " geo(list=" + g.list + " quads=" + g.quads + " dirty=" + g.dirty + " queued=" + g.queued
+                + " nStatic=" + g.nStatic + ")") + " chunkReady=" + ChunkAge.ready(sx, sz) + "]";
+    }
+
     String stats() {
         int built = 0;
         for (Geo g : geos.values()) if (g.list >= 0) built++;

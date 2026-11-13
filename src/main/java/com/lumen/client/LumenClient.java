@@ -59,6 +59,24 @@ public class LumenClient {
 
     public static void resetTimers() { tickNanos = tickCount = renderNanos = renderCount = worstTick = 0; }
 
+    /** Test diagnostics for one light position. */
+    public static String debugLight(BlockPos p) {
+        if (instance == null) return "";
+        boolean scanned = false, listed = false;
+        int index = -1;
+        for (SectionScanner.ColorLight l : instance.scanner.colorLights()) if (l.pos.equals(p)) scanned = true;
+        java.util.List<LightModel.Light> ls = instance.blockLight.lights();
+        for (int i = 0; i < ls.size(); i++) {
+            LightModel.Light l = ls.get(i);
+            if (l.block != null && Math.abs(l.block.getX() - p.getX()) <= 1 && Math.abs(l.block.getY() - p.getY()) <= 1 && Math.abs(l.block.getZ() - p.getZ()) <= 1) { listed = true; index = i; break; }
+        }
+        BlockPos ground = p.down(4);
+        return p + " light=" + (mcWorld() != null ? mcWorld().getLightFromNeighbors(ground.up()) : -1) + " scanned=" + scanned + " listed=" + listed + "#" + index
+                + "/" + ls.size() + " " + instance.gpu.debugAt(ground) + " cpu=" + instance.blockLight.debugAt(ground);
+    }
+
+    private static World mcWorld() { return Minecraft.getMinecraft().world; }
+
     public static String gpuStats() { return instance == null ? "" : instance.gpu.stats(); }
 
     public static String timings() {

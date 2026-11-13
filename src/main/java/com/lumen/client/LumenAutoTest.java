@@ -99,6 +99,7 @@ public class LumenAutoTest {
         s = new Scene("3i_far_lights_walking", 18000, 700);
         s.setup = () -> setupFarLights();
         s.during = left -> walkFar(left);
+        s.cpu = true;
         scenes.add(s);
         s = new Scene("3f_entity_torch_night", 18000, 260);
         s.setup = () -> setupEntities(true);
@@ -167,7 +168,7 @@ public class LumenAutoTest {
         }
         if (wait > 0) {
             wait--;
-            if (phase == 1 && sceneIndex < scenes.size() && scenes.get(sceneIndex).during != null) scenes.get(sceneIndex).during.accept(wait);
+            if ((phase == 1 || phase == 3) && sceneIndex < scenes.size() && scenes.get(sceneIndex).during != null) scenes.get(sceneIndex).during.accept(wait);
             return;
         }
         if (spawn == null) {
@@ -238,6 +239,8 @@ public class LumenAutoTest {
                 + " | shadow quads=" + SunShadows.statQuads + " pending=" + SunShadows.statPending
                 + " lastColumnBuild=" + SunShadows.statLastBuildMicros + "us"
                 + " | " + LumenClient.timings());
+        if (pendingShot.startsWith("3i_far") && !pendingShot.endsWith("_vanilla"))
+            for (BlockPos t : farTowers) log("  tower " + (int) Math.sqrt(t.distanceSq(new BlockPos(mc.player))) + "m: " + LumenClient.debugLight(t));
         if (onShot) LumenClient.active = false;
         pendingShot = null;
     }
@@ -498,6 +501,7 @@ public class LumenAutoTest {
     }
 
     private BlockPos farBase;
+    private final java.util.List<BlockPos> farTowers = new java.util.ArrayList<>();
 
     /**
      * Glowstone towers far down a line (up to ~150 blocks), seen while walking toward them at
@@ -512,6 +516,7 @@ public class LumenAutoTest {
                 for (int h = 0; h < 3; h++) w.setBlockState(t.up(h), Blocks.COBBLESTONE.getDefaultState());
                 w.setBlockState(t.up(3), Blocks.GLOWSTONE.getDefaultState());
                 w.setBlockState(t.up(4), Blocks.TORCH.getDefaultState());
+                farTowers.add(t.up(3));
             }
             player(w).connection.setPlayerLocation(farBase.getX() - 40.5, farBase.getY() + 20, farBase.getZ() + 0.5, -90f, 12f);
         });

@@ -324,6 +324,11 @@ public class BlockLightSections {
         statQuads = q;
     }
 
+    String debugAt(BlockPos p) {
+        Section s = sections.get(key(p.getX() >> 4, p.getY() >> 4, p.getZ() >> 4));
+        return s == null ? "none" : "(list=" + s.list + " quads=" + s.quads + " dirty=" + s.dirty + " queued=" + s.queued + " gpuSkip=" + s.gpuSkip + ")";
+    }
+
     public void clear() {
         gen++;
         for (Section s : sections.values()) free(s);
