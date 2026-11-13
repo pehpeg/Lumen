@@ -84,6 +84,12 @@ public class LumenAutoTest {
         s = new Scene("3e_stained_glass", 18000, 300);
         s.setup = () -> setupGlass();
         scenes.add(s);
+        s = new Scene("3g_glowstone_wall", 18000, 300);
+        s.setup = () -> setupGlowWall();
+        scenes.add(s);
+        s = new Scene("3h_tallgrass_torch", 18000, 300);
+        s.setup = () -> setupTallGrass();
+        scenes.add(s);
         s = new Scene("3f_entity_torch_night", 18000, 260);
         s.setup = () -> setupEntities(true);
         scenes.add(s);
@@ -97,6 +103,12 @@ public class LumenAutoTest {
         s.setup = () -> setupShadowTower(170f);
         scenes.add(s);
         s = new Scene("6_shadows_afternoon", 9800, 320);
+        s.setup = () -> setupShadowTower(170f);
+        scenes.add(s);
+        s = new Scene("6b_sunset_sky_color", 12200, 320);
+        s.setup = () -> setupShadowTower(170f);
+        scenes.add(s);
+        s = new Scene("6c_moon_shadows", 18000, 320);
         s.setup = () -> setupShadowTower(170f);
         scenes.add(s);
         s = new Scene("7_forest_afternoon", 9000, 420);
@@ -411,6 +423,49 @@ public class LumenAutoTest {
             player(w).connection.setPlayerLocation(g.getX() + 0.0, y + 5, g.getZ() + 7.5, 180f, 40f);
         });
         yaw = 180f; pitch = 40f;
+    }
+
+    /** A big stone wall with glowstone set into it (flush), like a lit facade. */
+    private void setupGlowWall() {
+        BlockPos at = spawn.add(40, 0, -40);
+        onServer(w -> {
+            BlockPos g = dryGround(w, at);
+            int y = g.getY();
+            for (int x = -12; x <= 12; x++) for (int z = -10; z <= 4; z++) {
+                w.setBlockState(new BlockPos(g.getX() + x, y - 1, g.getZ() + z), Blocks.GRASS.getDefaultState());
+                for (int h = 0; h < 14; h++) w.setBlockToAir(new BlockPos(g.getX() + x, y + h, g.getZ() + z));
+            }
+            for (int x = -12; x <= 12; x++) for (int h = 0; h < 12; h++) {
+                BlockPos p = new BlockPos(g.getX() + x, y + h, g.getZ() + 4);
+                boolean glow = (h == 1 || h == 3) && Math.floorMod(x, 2) == 0 && Math.abs(x) <= 10;
+                w.setBlockState(p, glow ? Blocks.GLOWSTONE.getDefaultState() : Blocks.STONEBRICK.getDefaultState());
+            }
+            player(w).connection.setPlayerLocation(g.getX() + 0.5, y + 3, g.getZ() - 8.5, 0f, 12f);
+        });
+        yaw = 0f; pitch = 12f;
+    }
+
+    /** A torch beside tall grass and a double plant: grass blades should cast crisp shadows. */
+    private void setupTallGrass() {
+        BlockPos at = spawn.add(-40, 0, -40);
+        onServer(w -> {
+            BlockPos g = dryGround(w, at);
+            int y = g.getY();
+            for (int x = -10; x <= 10; x++) for (int z = -10; z <= 10; z++) {
+                BlockPos f = new BlockPos(g.getX() + x, y - 1, g.getZ() + z);
+                w.setBlockState(f, Blocks.GRASS.getDefaultState());
+                for (int h = 0; h < 8; h++) w.setBlockToAir(f.up(h + 1));
+            }
+            w.setBlockState(g, Blocks.TORCH.getDefaultState());
+            BlockPos d = g.add(1, 0, -1);
+            w.setBlockState(d, Blocks.DOUBLE_PLANT.getStateFromMeta(2));       // double tall grass, lower half
+            w.setBlockState(d.up(), Blocks.DOUBLE_PLANT.getStateFromMeta(10)); // upper half
+            w.setBlockState(g.add(-1, 0, -1), Blocks.TALLGRASS.getStateFromMeta(1));
+            w.setBlockState(g.add(-2, 0, 1), Blocks.TALLGRASS.getStateFromMeta(1));
+            w.setBlockState(g.add(1, 0, 2), Blocks.RED_FLOWER.getDefaultState());
+            player(w).connection.setPlayerLocation(g.getX() + 0.5, y + 5, g.getZ() + 6.5, 180f, 45f);
+        });
+        yaw = 180f; pitch = 45f;
     }
 
     private void setupOreRoom() {

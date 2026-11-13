@@ -138,9 +138,14 @@ final class LightModel {
                 vx /= dist; vy /= dist; vz /= dist;
                 double ndl = n[0] * vx + n[1] * vy + n[2] * vz;
                 if (l.area) {
-                    // a glowing block lights everything its surface faces: judge the angle toward its center
+                    // a glowing block lights everything its surface faces. Floors beside it: judge toward its
+                    // center. Walls it is set into (center behind the wall, light grazing along the surface):
+                    // still lit, like a lamp panel spilling light over the wall around it
                     double cxv = l.x - sx, cyv = l.y - sy, czv = l.z - sz, cl = Math.sqrt(cxv * cxv + cyv * cyv + czv * czv);
-                    ndl = cl > 1e-4 ? (n[0] * cxv + n[1] * cyv + n[2] * czv) / cl : 1;
+                    double toCenter = cl > 1e-4 ? (n[0] * cxv + n[1] * cyv + n[2] * czv) / cl : 1;
+                    double near = ndl;
+                    ndl = Math.max(near, toCenter);
+                    if (ndl <= 0 && near > -0.03) ndl = 0.05;
                     if (dist < 0.05) ndl = 1;
                 }
                 if (twoSided) ndl = Math.abs(ndl);
@@ -148,7 +153,8 @@ final class LightModel {
                 if (ndl > 0) Occlusion.walkRgb(w, m, sx, sy, sz, vx, vy, vz, Math.max(0, dist - 0.05), l.block, false, tr);
                 else tr[0] = tr[1] = tr[2] = 0f;
                 float tm = Math.max(tr[0], Math.max(tr[1], tr[2]));
-                state = tm <= 0.5f ? 0 : (Math.min(tr[0], Math.min(tr[1], tr[2])) < tm * 0.85f ? 1 : 2);
+                // 1 = tinted or partly dimmed (grass blades, glass): its edge is refined to the pixel too
+                state = tm <= 0.5f ? 0 : (tm < 0.93f || Math.min(tr[0], Math.min(tr[1], tr[2])) < tm * 0.85f ? 1 : 2);
                 if (tm > 0) {
                     float b = bright(lev) * tm * (float) Math.min(1.0, 0.82 + ndl * 0.3);   // gentle: grazing floors stay lit
                     if (b > best) best = b;

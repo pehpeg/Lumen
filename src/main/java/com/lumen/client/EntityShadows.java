@@ -42,7 +42,7 @@ final class EntityShadows {
     private float[] table = new float[16];
     private float sunB, sunK, day;
     private double sx, sy, sz;
-    private boolean sunOn;
+    private boolean sunOn, night;
 
     void render(float pt, double cx, double cy, double cz, List<LightModel.Light> lights, List<double[]> moving) {
         World w = mc.world;
@@ -54,7 +54,13 @@ final class EntityShadows {
         sx = -Math.sin(ang); sy = Math.cos(ang); sz = 0.18;
         double sl = Math.sqrt(sx * sx + sy * sy + sz * sz);
         sx /= sl; sy /= sl; sz /= sl;
-        day = (float) Math.max(0, Math.min(1, (sy - 0.08) / 0.25)) * (1f - w.getRainStrength(pt));
+        float moonK = 1f;
+        night = sy < 0;
+        if (sy < 0) {   // night: the moon casts the shadow (opposite the sun), fainter
+            sx = -sx; sy = -sy; sz = -sz;
+            moonK = LumenConfig.shadows.moonShadows ? 0.3f + 0.3f * w.getCurrentMoonPhaseFactor() : 0f;
+        }
+        day = (float) Math.max(0, Math.min(1, (sy - 0.08) / 0.25)) * (1f - w.getRainStrength(pt)) * moonK;
         sunOn = LumenConfig.shadows.enabled && w.provider.isSurfaceWorld() && day > 0.02f;
         sunK = (float) LumenConfig.shadows.strength * day;
         boolean lampsOn = LumenConfig.colored.enabled && LumenConfig.colored.shadows;
@@ -225,7 +231,10 @@ final class EntityShadows {
         float sunDark = 0, sunShare = 0;
         if (sun && (sx * nx + sy * ny + sz * nz) > 0 && hits(b, px, py, pz, sx, sy, sz, 64)) {
             mask |= 1 << 23;
-            sunDark = sunK * Math.min(1f, skyB) * (1f - 0.35f * Math.min(1f, b0));
+            sunDark = night
+                    // moonlight is weak: judged against the whole light here, so a nearby torch washes it out
+                    ? sunK * Math.min(1f, skyB / Math.max(0.05f, sunB)) * (skyB / Math.max(1e-4f, skyB + b0))
+                    : sunK * Math.min(1f, skyB) * (1f - 0.35f * Math.min(1f, b0));
             sunShare = 1;
         }
         float dark = Math.max(0f, Math.min(0.92f, 1f - (1f - lampDark) * (1f - sunDark)));

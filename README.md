@@ -18,7 +18,13 @@ own light engine or draws its own layer, so it works no matter which chunk rende
   light get its color, blocks in the way cast real shadows, sides facing away go dark.
 - **Sun shadows** – trees, buildings and cliffs cast shadows traced through the blocks on a
   background thread; partial blocks (slabs, stairs, fences) shade by their shape; faces turned from
-  the sun are shaded; shade is slightly cool like sky light.
+  the sun are shaded; shade is slightly cool like sky light. At night the moon casts faint shadows.
+- **Colored sky light** – golden sunrises and sunsets, slightly warm noon, cool blue moonlight; only
+  the sky's share of the light is tinted, torch-lit spots keep their own color.
+- **Entity shadows** – players and mobs cast body-shaped shadows from the sun, the moon and every
+  nearby light, instead of the round blob.
+- **Light definitions** – `block_light.colors` takes `modid:block=RRGGBB` or `modid:block=RRGGBB,level`
+  to recolor any light block (modded too) or change how far its light reaches.
 
 Press **K** to turn Lumen on and off (rebindable in Controls → Lumen).
 

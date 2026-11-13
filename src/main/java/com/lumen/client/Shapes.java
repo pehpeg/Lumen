@@ -96,7 +96,7 @@ final class Shapes {
             float a = (c >>> 24) / 255f;
             if (a < 0.1f) continue;                           // a gap: light goes through
             if (s.soft) {                                     // thin plants / clear glass: dim per pixel hit
-                float k = 1f - 0.15f * a;   // one blade: faint shadow; dense grass: stronger
+                float k = 1f - 0.3f * a;    // one blade: a clear shadow; dense grass: stronger
                 t[0] *= k; t[1] *= k; t[2] *= k;
                 if (Math.max(t[0], Math.max(t[1], t[2])) < 0.05f) return false;
                 continue;

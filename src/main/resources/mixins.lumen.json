@@ -11,6 +11,7 @@
 		"MixinBlock",
 		"MixinEntity",
 		"MixinEntityRenderer",
+		"MixinLightmap",
 		"MixinRender"
 	]
 }

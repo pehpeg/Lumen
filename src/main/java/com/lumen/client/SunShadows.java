@@ -93,11 +93,20 @@ public class SunShadows {
         int newStep = (int) Math.round(deg / stepDeg);
         double rad = Math.toRadians(newStep * stepDeg);
         double sx = -Math.sin(rad), sy = Math.cos(rad), sz = 0.18;
-        double len = Math.sqrt(sx * sx + sy * sy + sz * sz);
         float rain = w.getRainStrength(1f);
-        boolean nowActive = LumenClient.active && LumenConfig.shadows.enabled && w.provider.isSurfaceWorld() && sy > 0.1 && rain < 0.9f;
-        // how strong shadows are right now: fade in after sunrise / out before sunset and in rain
-        float day = (float) Math.max(0, Math.min(1, (sy - 0.1) / 0.25)) * (1f - rain);
+        float day;
+        if (sy > 0.1) {
+            // how strong shadows are right now: fade in after sunrise / out before sunset and in rain
+            day = (float) Math.max(0, Math.min(1, (sy - 0.1) / 0.25)) * (1f - rain);
+        } else {
+            // night: the moon (opposite the sun) casts fainter shadows, stronger at full moon
+            sx = -sx; sy = -sy; sz = -sz;
+            float phase = w.getCurrentMoonPhaseFactor();
+            day = LumenConfig.shadows.moonShadows
+                    ? (float) Math.max(0, Math.min(1, (sy - 0.1) / 0.25)) * (1f - rain) * (0.3f + 0.3f * phase) : 0f;
+        }
+        double len = Math.sqrt(sx * sx + sy * sy + sz * sz);
+        boolean nowActive = LumenClient.active && LumenConfig.shadows.enabled && w.provider.isSurfaceWorld() && sy > 0.1 && rain < 0.9f && day > 0.02f;
         int newDay = Math.round(day * 10);
 
         statPending = pending.get();

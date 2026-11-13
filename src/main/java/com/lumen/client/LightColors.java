@@ -24,20 +24,34 @@ public class LightColors {
 
     public static final int WHITE = 0xFFFFFF;
     private final Map<Block, Integer> configured = new HashMap<>();
+    private final Map<Block, Integer> levels = new HashMap<>();
     private final Map<IBlockState, Integer> cache = new IdentityHashMap<>();
 
     public LightColors() { reloadConfig(); }
 
     public void reloadConfig() {
         configured.clear();
+        levels.clear();
         cache.clear();   // colors are cached with vibrance applied
         for (String s : LumenConfig.colored.colors) {
             String[] kv = s.split("=");
             if (kv.length != 2) continue;
             Block b = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(kv[0].trim()));
-            try { if (b != null) configured.put(b, Integer.parseInt(kv[1].trim().replace("#", ""), 16) & 0xFFFFFF); }
+            if (b == null) continue;
+            String[] parts = kv[1].split(",");
+            try { if (!parts[0].trim().isEmpty()) configured.put(b, Integer.parseInt(parts[0].trim().replace("#", ""), 16) & 0xFFFFFF); }
             catch (NumberFormatException ignored) {}
+            if (parts.length > 1) {
+                try { levels.put(b, Math.max(0, Math.min(15, Integer.parseInt(parts[1].trim())))); }
+                catch (NumberFormatException ignored) {}
+            }
         }
+    }
+
+    /** Light level Lumen uses for this block (the configured one, else vanilla's). */
+    public int levelOf(IBlockState state, int vanilla) {
+        Integer l = levels.get(state.getBlock());
+        return l != null ? l : vanilla;
     }
 
     public void clearTextureCache() { cache.clear(); }

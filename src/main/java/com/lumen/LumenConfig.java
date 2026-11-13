@@ -81,7 +81,9 @@ public class LumenConfig {
         @Config.Comment("Max number of lights that get color and shadows (nearest first)")
         @Config.RangeInt(min = 4, max = 2048)
         public int maxLights = 512;
-        @Config.Comment("Colors as 'modid:block=RRGGBB' (overrides the automatic color)")
+        @Config.Comment("Light definitions as 'modid:block=RRGGBB' or 'modid:block=RRGGBB,level'. The color overrides the automatic\n"
+                + "color; the optional level (0..15) changes how far Lumen's light from that block reaches (0 = no Lumen light).\n"
+                + "Works for modded lamps too.")
         public String[] colors = {
                 "minecraft:torch=FF8A2A", "minecraft:fire=FF7020", "minecraft:lava=FF5A10", "minecraft:flowing_lava=FF5A10",
                 "minecraft:lit_pumpkin=FF9A2A", "minecraft:lit_furnace=FF8028", "minecraft:magma=FF4A10",
@@ -119,6 +121,14 @@ public class LumenConfig {
         @Config.Comment("Shadows move when the sun has moved this many degrees")
         @Config.RangeDouble(min = 2, max = 30)
         public double updateDegrees = 5;
+        @Config.Comment("At night the moon casts faint shadows too (stronger at full moon)")
+        public boolean moonShadows = true;
+        @Config.Comment("Colored sky light: warm golden light at sunrise and sunset, slightly warm daylight, cool blue\n"
+                + "moonlight. Only the sky's share of the light is tinted; torch-lit spots keep their own color.")
+        public boolean skyColor = true;
+        @Config.Comment("How strongly the sky light is colored (0..1)")
+        @Config.RangeDouble(min = 0, max = 1)
+        public double skyColorStrength = 0.8;
     }
 
     @Mod.EventBusSubscriber(modid = Lumen.MODID)
