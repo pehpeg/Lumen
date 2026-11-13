@@ -46,7 +46,8 @@ final class VoxelVolume {
         return t;
     });
     private int refreshCursor;
-    int statUploaded;
+    int statUploaded, statFailed, statSkippedUnloaded;
+    String firstError;
 
     VoxelVolume(int rc, ShapeAtlas atlas) {
         this.rc = rc;
@@ -120,7 +121,7 @@ final class VoxelVolume {
         for (int[] s : want) {
             if (pending.get() >= 6) break;
             int sx = s[0], sy = s[1], sz = s[2];
-            if (sy >= 0 && sy <= 15 && !w.isChunkGeneratedAt(sx, sz)) continue;
+            if (sy >= 0 && sy <= 15 && !w.isChunkGeneratedAt(sx, sz)) { statSkippedUnloaded++; continue; }
             submit(w, sx, sy, sz);
         }
     }
@@ -137,6 +138,8 @@ final class VoxelVolume {
             try {
                 done.add(new Object[]{k, sx, sy, sz, read(cache, sx, sy, sz)});
             } catch (Throwable t) {
+                statFailed++;
+                if (firstError == null) { firstError = t.toString(); org.apache.logging.log4j.LogManager.getLogger("Lumen").warn("Lumen voxel read failed", t); }
                 done.add(new Object[]{k, sx, sy, sz, null});
             } finally {
                 pending.decrementAndGet();

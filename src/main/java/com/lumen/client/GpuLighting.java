@@ -445,7 +445,8 @@ public final class GpuLighting {
         GL20.glUniform1f(u("ShadowK"), LumenConfig.colored.shadows ? (float) LumenConfig.colored.shadowStrength : 0f);
         GL20.glUniform2f(u("Fog"), fog[0], fog[1]);
 
-        int sections = 0, quads = 0;
+        int sections = 0, quads = 0, movingSecs = 0, geoReady = 0;
+        statMovingLights = count - nStaticLights;
         try {
             for (int pass = 0; pass < 2; pass++) {
                 if (pass == 0) GL11.glBlendFunc(GL11.GL_DST_COLOR, GL11.GL_SRC_COLOR);
@@ -455,6 +456,7 @@ public final class GpuLighting {
                     if (g.list < 0 || g.quads == 0) continue;
                     if (pass == 0 ? g.nStatic == 0 : g.nMoving == 0) continue;
                     if (!vol.ready(g.sx, g.sy, g.sz)) continue;
+                    if (pass == 1) movingSecs++; else geoReady++;
                     idxBuf.clear();
                     for (int i = 0; i < g.nStatic; i++) idxBuf.put(g.statics[i]);
                     for (int i = 0; i < g.nMoving; i++) idxBuf.put(g.moving[i]);
@@ -483,6 +485,8 @@ public final class GpuLighting {
         }
         statSections = sections;
         statQuads = quads;
+        statMovingSections = movingSecs;
+        statGeoReady = geoReady;
         int err = GL11.glGetError();
         if (err != 0 && !reportedError) { reportedError = true; LOG.warn("Lumen GPU lighting: GL error " + err + " while drawing"); }
     }
@@ -505,8 +509,15 @@ public final class GpuLighting {
         r2[i * 4] = bx; r2[i * 4 + 1] = by; r2[i * 4 + 2] = bz; r2[i * 4 + 3] = hasBlock ? 1f : 0f;
     }
 
+    private int statMovingSections, statMovingLights, statGeoReady;
+
     String stats() {
-        return "gpu=" + status + (vol != null ? " vol=" + vol.readyCount() + "/" + (vol.n * vol.n * VoxelVolume.SLOTS_Y) : "")
-                + " gpuSections=" + statSections + " gpuQuads=" + statQuads;
+        int built = 0;
+        for (Geo g : geos.values()) if (g.list >= 0) built++;
+        return "gpu=" + status + (vol != null ? " vol=" + vol.readyCount() + "/" + (vol.n * vol.n * VoxelVolume.SLOTS_Y)
+                + " center=" + vol.csx + "," + vol.csy + "," + vol.csz + " volFailed=" + vol.statFailed + " unloadedSkips=" + vol.statSkippedUnloaded
+                + (vol.firstError != null ? " err=" + vol.firstError : "") : "")
+                + " geos=" + geos.size() + "/" + built + " geoReady=" + statGeoReady
+                + " gpuSections=" + statSections + " gpuQuads=" + statQuads + " movingLights=" + statMovingLights + " movingSections=" + statMovingSections;
     }
 }
