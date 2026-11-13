@@ -319,17 +319,14 @@ public class BlockLighting {
         }
         float[] mid = sample(c, bilerp(pos, 0.5, 0.5), ctr, n, twoSided);
         lo = Math.min(lo, mid[3]); hi = Math.max(hi, mid[3]);
-        int res = c.res;
-        if (res <= 1 || hi - lo < 0.08f) {
+        if (c.res <= 1 || hi - lo < 0.08f) {
             emit(c, out, pos, uv, 0, 0, 1, 1, corner[0], corner[1], corner[2], corner[3]);
             return;
         }
-        float[][] g = new float[(res + 1) * (res + 1)][];
-        for (int i = 0; i <= res; i++) for (int j = 0; j <= res; j++)
-            g[i * (res + 1) + j] = sample(c, bilerp(pos, i / (double) res, j / (double) res), ctr, n, twoSided);
-        for (int i = 0; i < res; i++) for (int j = 0; j < res; j++)
-            emit(c, out, pos, uv, i / (double) res, j / (double) res, (i + 1) / (double) res, (j + 1) / (double) res,
-                    g[i * (res + 1) + j], g[(i + 1) * (res + 1) + j], g[(i + 1) * (res + 1) + j + 1], g[i * (res + 1) + j + 1]);
+        // a shadow edge crosses this quad: refine adaptively down to 1/res (16 = pixel sharp)
+        AdaptiveQuad.subdivide(c.res, 3, 0.08f,
+                (u, v) -> sample(c, bilerp(pos, u, v), ctr, n, twoSided),
+                (s0, t0, s1, t1, qa, qb, qc, qd) -> emit(c, out, pos, uv, s0, t0, s1, t1, qa, qb, qc, qd));
     }
 
     /** Point at (s, t) on the quad: s runs vertex 0 -> 1, t runs vertex 0 -> 3. */

@@ -276,22 +276,13 @@ public class SunShadows {
             quad(out, ox, oy, oz, t1, t2, nx, ny, nz, 0, 0, 1, 1, c00, c10, c11, c01, bx, bz);
             return;
         }
-        // a shadow edge crosses this face: trace a finer grid for a crisp edge
-        float[] g = new float[(res + 1) * (res + 1)];
-        for (int i = 0; i <= res; i++) for (int j = 0; j <= res; j++) {
-            double u = i / (double) res, v = j / (double) res;
-            float val;
-            if (i == 0 && j == 0) val = c00; else if (i == res && j == 0) val = c10;
-            else if (i == res && j == res) val = c11; else if (i == 0 && j == res) val = c01;
-            else val = shadeAt(cache, m, ox, oy, oz, t1, t2, nx, ny, nz, u, v, sx, sy, sz, dist, lambert);
-            g[i * (res + 1) + j] = val;
-        }
-        for (int i = 0; i < res; i++) for (int j = 0; j < res; j++) {
-            float a = g[i * (res + 1) + j], b = g[(i + 1) * (res + 1) + j], c = g[(i + 1) * (res + 1) + j + 1], d = g[i * (res + 1) + j + 1];
-            if (Math.max(Math.max(a, b), Math.max(c, d)) < 0.03f) continue;
-            quad(out, ox, oy, oz, t1, t2, nx, ny, nz, i / (double) res, j / (double) res, (i + 1) / (double) res, (j + 1) / (double) res,
-                    a, b, c, d, bx, bz);
-        }
+        // a shadow edge crosses this face: refine adaptively down to 1/res (16 = pixel sharp)
+        AdaptiveQuad.subdivide(res, 0, 0.06f,
+                (u, v) -> new float[]{shadeAt(cache, m, ox, oy, oz, t1, t2, nx, ny, nz, u, v, sx, sy, sz, dist, lambert)},
+                (s0, t0, s1, t1, qa, qb, qc, qd) -> {
+                    if (Math.max(Math.max(qa[0], qb[0]), Math.max(qc[0], qd[0])) < 0.03f) return;
+                    quad(out, ox, oy, oz, t1, t2, nx, ny, nz, s0, t0, s1, t1, qa[0], qb[0], qc[0], qd[0], bx, bz);
+                });
     }
 
     private static float shadeAt(ChunkCache cache, BlockPos.MutableBlockPos m, double ox, double oy, double oz,

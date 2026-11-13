@@ -74,10 +74,10 @@ public class LumenConfig {
         @Config.Comment("How dark the shadows of block lights are (0..1)")
         @Config.RangeDouble(min = 0, max = 1)
         public double shadowStrength = 0.85;
-        @Config.Comment("Shadow edge sharpness: surfaces a shadow edge crosses are traced on an N x N grid\n"
-                + "(4 = quarter-block edges, 8 = eighth-block). Costs background-thread time only.")
-        @Config.RangeInt(min = 1, max = 8)
-        public int resolution = 4;
+        @Config.Comment("Shadow edge sharpness: shadow edges are refined down to 1/N of a block (16 = pixel sharp,\n"
+                + "4 = quarter-block). Only refined where an edge actually is; costs background-thread time and some geometry.")
+        @Config.RangeInt(min = 1, max = 16)
+        public int resolution = 16;
         @Config.Comment("Max number of lights that get color and shadows (nearest first)")
         @Config.RangeInt(min = 4, max = 128)
         public int maxLights = 48;
@@ -110,10 +110,10 @@ public class LumenConfig {
         @Config.Comment("How far (blocks) toward the sun to look for shadow casters")
         @Config.RangeInt(min = 8, max = 64)
         public int castDistance = 32;
-        @Config.Comment("Shadow edge sharpness: 1 = one sample per block face, 4 = quarter-block edges, 8 = eighth-block.\n"
-                + "Only faces a shadow edge crosses are refined, so higher values mostly cost background-thread time.")
-        @Config.RangeInt(min = 1, max = 8)
-        public int resolution = 4;
+        @Config.Comment("Shadow edge sharpness: shadow edges are refined down to 1/N of a block (16 = pixel sharp,\n"
+                + "4 = quarter-block). Only refined where an edge actually is; costs background-thread time and some geometry.")
+        @Config.RangeInt(min = 1, max = 16)
+        public int resolution = 16;
         @Config.Comment("Shadows move when the sun has moved this many degrees")
         @Config.RangeDouble(min = 2, max = 30)
         public double updateDegrees = 5;
