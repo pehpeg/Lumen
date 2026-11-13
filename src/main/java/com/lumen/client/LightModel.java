@@ -78,7 +78,7 @@ final class LightModel {
     }
 
     /** Vanilla's block and sky light at a point (smooth, over the open cells around it). */
-    static float[] vanilla(IBlockAccess w, BlockPos.MutableBlockPos m, double qx, double qy, double qz) {
+    static float[] vanilla(net.minecraft.world.ChunkCache w, BlockPos.MutableBlockPos m, double qx, double qy, double qz) {
         double gx = qx - 0.5, gy = qy - 0.5, gz = qz - 0.5;
         int x0 = (int) Math.floor(gx), y0 = (int) Math.floor(gy), z0 = (int) Math.floor(gz);
         double fx = gx - x0, fy = gy - y0, fz = gz - z0;
