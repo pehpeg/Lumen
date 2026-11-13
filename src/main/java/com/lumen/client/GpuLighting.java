@@ -475,7 +475,7 @@ public final class GpuLighting {
                 for (Geo g : geos.values()) {
                     if (g.list < 0 || g.quads == 0) continue;
                     if (pass == 0 ? g.nStatic == 0 : g.nMoving == 0) continue;
-                    if (!vol.ready(g.sx, g.sy, g.sz)) continue;
+                    if (!vol.ready(g.sx, g.sy, g.sz) || !ChunkAge.ready(g.sx, g.sz)) continue;
                     if (pass == 1) movingSecs++; else geoReady++;
                     idxBuf.clear();
                     for (int i = 0; i < g.nStatic; i++) idxBuf.put(g.statics[i]);

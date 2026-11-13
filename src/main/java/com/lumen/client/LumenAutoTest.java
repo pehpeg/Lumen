@@ -96,7 +96,7 @@ public class LumenAutoTest {
         s = new Scene("3h_tallgrass_torch", 18000, 300);
         s.setup = () -> setupTallGrass();
         scenes.add(s);
-        s = new Scene("3i_far_lights_walking", 18000, 400);
+        s = new Scene("3i_far_lights_walking", 18000, 700);
         s.setup = () -> setupFarLights();
         s.during = left -> walkFar(left);
         scenes.add(s);
@@ -521,7 +521,7 @@ public class LumenAutoTest {
     /** Walk toward the towers (4.3 blocks/s, like walking), crossing many sections before the shot. */
     private void walkFar(int left) {
         if (farBase == null) return;
-        int done = 400 - left;
+        int done = 700 - left;   // walk for 14 s, then let the far terrain finish drawing
         double x = farBase.getX() - 40.5 + Math.min(done, 280) * 0.215;
         final double fx = x;
         onServer(w -> player(w).connection.setPlayerLocation(fx, farBase.getY() + 20, farBase.getZ() + 0.5, -90f, 12f));

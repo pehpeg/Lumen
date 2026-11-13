@@ -314,6 +314,7 @@ public class BlockLightSections {
         for (Section s : sections.values()) {
             if (s.list < 0 || s.quads == 0) continue;
             if (gpu != null && gpu.covers(s.sx, s.sy, s.sz)) continue;
+            if (!ChunkAge.ready(s.sx, s.sz)) continue;
             GL11.glPushMatrix();
             GL11.glTranslated((s.sx << 4) - cx, (s.sy << 4) - cy, (s.sz << 4) - cz);
             GL11.glCallList(s.list);

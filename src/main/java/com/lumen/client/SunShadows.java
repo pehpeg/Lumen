@@ -358,7 +358,7 @@ public class SunShadows {
         if (!active) return;
         int q = 0;
         for (Column c : columns.values()) {
-            if (c.list < 0 || c.quads == 0) continue;
+            if (c.list < 0 || c.quads == 0 || !ChunkAge.ready(c.cx, c.cz)) continue;
             GL11.glPushMatrix();
             GL11.glTranslated((c.cx << 4) - cx, -cy, (c.cz << 4) - cz);
             GL11.glCallList(c.list);

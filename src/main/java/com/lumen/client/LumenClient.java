@@ -73,6 +73,7 @@ public class LumenClient {
         instance = new LumenClient();
         MinecraftForge.EVENT_BUS.register(instance);
         MinecraftForge.EVENT_BUS.register(instance.dynamicLights);
+        MinecraftForge.EVENT_BUS.register(new ChunkAge());
         // resource packs changed: emissive textures and texture-derived colors must be re-read
         if (Minecraft.getMinecraft().getResourceManager() instanceof IReloadableResourceManager) {
             ((IReloadableResourceManager) Minecraft.getMinecraft().getResourceManager()).registerReloadListener(rm -> {
@@ -251,6 +252,7 @@ public class LumenClient {
             GL11.glBindTexture(GL11.GL_TEXTURE_2D, en.getKey().textureId());
             buf.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
             for (SectionScanner.GlowQuad q : en.getValue()) {
+                if (!ChunkAge.ready(((int) Math.floor(q.xyz[0])) >> 4, ((int) Math.floor(q.xyz[2])) >> 4)) continue;
                 float c = pulse ? 0.88f + 0.12f * MathHelper.sin(time * 0.07f + (q.seed % 1000) * 0.37f) : 1f;
                 for (int i = 0; i < 4; i++) {
                     buf.pos(q.xyz[i * 3] - cx, q.xyz[i * 3 + 1] - cy, q.xyz[i * 3 + 2] - cz)
