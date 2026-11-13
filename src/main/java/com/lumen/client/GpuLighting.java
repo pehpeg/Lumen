@@ -384,8 +384,10 @@ public final class GpuLighting {
         lightBuf.clear();
         float[] row0 = new float[MAX_LIGHTS * 4], row1 = new float[MAX_LIGHTS * 4], row2 = new float[MAX_LIGHTS * 4];
         List<double[]> pos = new ArrayList<>();   // {x, y, z, reach} rel. base, per light index
+        double vx0 = (vol.csx - vol.rc) << 4, vx1 = (vol.csx + vol.rc + 1) << 4, vz0 = (vol.csz - vol.rc) << 4, vz1 = (vol.csz + vol.rc + 1) << 4;
         for (LightModel.Light l : statics) {
             if (count >= MAX_LIGHTS - MAX_MOVING) break;
+            if (l.x < vx0 - 16 || l.x > vx1 + 16 || l.z < vz0 - 16 || l.z > vz1 + 16) continue;   // far: the CPU path lights it
             put(row0, row1, row2, count, l.x - bx, l.y - by, l.z - bz, l.level, l.col, l.area,
                     l.block != null ? l.block.getX() - bx : 0, l.block != null ? l.block.getY() - by : 0, l.block != null ? l.block.getZ() - bz : 0, l.block != null);
             pos.add(new double[]{l.x, l.y, l.z, l.reach()});

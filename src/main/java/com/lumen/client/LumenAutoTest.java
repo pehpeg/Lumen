@@ -50,6 +50,7 @@ public class LumenAutoTest {
         final String name; final long time; final int settle;
         boolean cpu;   // also take a shot with the CPU light path, for comparison with the GPU one
         Runnable setup = () -> {};
+        java.util.function.IntConsumer during;   // runs every tick while the scene settles (e.g. walking)
         Scene(String name, long time, int settle) { this.name = name; this.time = time; this.settle = settle; }
     }
 
@@ -94,6 +95,10 @@ public class LumenAutoTest {
         scenes.add(s);
         s = new Scene("3h_tallgrass_torch", 18000, 300);
         s.setup = () -> setupTallGrass();
+        scenes.add(s);
+        s = new Scene("3i_far_lights_walking", 18000, 400);
+        s.setup = () -> setupFarLights();
+        s.during = left -> walkFar(left);
         scenes.add(s);
         s = new Scene("3f_entity_torch_night", 18000, 260);
         s.setup = () -> setupEntities(true);
@@ -160,7 +165,11 @@ public class LumenAutoTest {
             wait = 400;
             return;
         }
-        if (wait > 0) { wait--; return; }
+        if (wait > 0) {
+            wait--;
+            if (phase == 1 && sceneIndex < scenes.size() && scenes.get(sceneIndex).during != null) scenes.get(sceneIndex).during.accept(wait);
+            return;
+        }
         if (spawn == null) {
             spawn = new BlockPos(mc.player);
             log("spawn at " + spawn + " biome=" + mc.world.getBiome(spawn).getBiomeName());
@@ -172,6 +181,7 @@ public class LumenAutoTest {
             case 0:
                 LumenClient.active = true;
                 skipScene = false;
+                mc.gameSettings.renderDistanceChunks = 6;
                 clearHands();
                 onServer(w -> w.setWorldTime(s.time));
                 try { s.setup.run(); } catch (Exception ex) { log(s.name + ": setup failed: " + ex); skipScene = true; }
@@ -485,6 +495,37 @@ public class LumenAutoTest {
             player(w).connection.setPlayerLocation(g.getX() + 0.5, y + 5, g.getZ() + 6.5, 180f, 45f);
         });
         yaw = 180f; pitch = 45f;
+    }
+
+    private BlockPos farBase;
+
+    /**
+     * Glowstone towers far down a line (up to ~150 blocks), seen while walking toward them at
+     * walking speed with a 12-chunk render distance: far lights must show up and stay lit.
+     */
+    private void setupFarLights() {
+        mc.gameSettings.renderDistanceChunks = 12;
+        onServer(w -> {
+            farBase = w.getTopSolidOrLiquidBlock(spawn.add(-200, 0, -200));
+            for (int i = 0; i < 6; i++) {
+                BlockPos t = w.getTopSolidOrLiquidBlock(farBase.add(40 + i * 24, 0, (i % 2 == 0 ? -6 : 6)));
+                for (int h = 0; h < 3; h++) w.setBlockState(t.up(h), Blocks.COBBLESTONE.getDefaultState());
+                w.setBlockState(t.up(3), Blocks.GLOWSTONE.getDefaultState());
+                w.setBlockState(t.up(4), Blocks.TORCH.getDefaultState());
+            }
+            player(w).connection.setPlayerLocation(farBase.getX() - 40.5, farBase.getY() + 20, farBase.getZ() + 0.5, -90f, 12f);
+        });
+        yaw = -90f; pitch = 12f;
+    }
+
+    /** Walk toward the towers (4.3 blocks/s, like walking), crossing many sections before the shot. */
+    private void walkFar(int left) {
+        if (farBase == null) return;
+        int done = 400 - left;
+        double x = farBase.getX() - 40.5 + Math.min(done, 280) * 0.215;
+        final double fx = x;
+        onServer(w -> player(w).connection.setPlayerLocation(fx, farBase.getY() + 20, farBase.getZ() + 0.5, -90f, 12f));
+        look();
     }
 
     private void setupOreRoom() {

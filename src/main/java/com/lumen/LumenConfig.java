@@ -79,8 +79,8 @@ public class LumenConfig {
         @Config.RangeInt(min = 1, max = 16)
         public int resolution = 16;
         @Config.Comment("Max number of lights that get color and shadows (nearest first)")
-        @Config.RangeInt(min = 4, max = 2048)
-        public int maxLights = 512;
+        @Config.RangeInt(min = 4, max = 8192)
+        public int maxLights = 2048;
         @Config.Comment("Trace light on the graphics card (needs OpenGL 3.0; falls back to the CPU automatically).\n"
                 + "Much lighter on the CPU, pixel-sharp at any distance, and moving lights follow every frame.")
         public boolean gpu = true;

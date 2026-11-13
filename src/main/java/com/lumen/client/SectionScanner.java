@@ -59,6 +59,8 @@ public class SectionScanner {
     private final Map<Long, Section> sections = new HashMap<>();
     private final Set<Long> dirty = new HashSet<>();
     private final List<Long> order = new ArrayList<>();
+    private final Set<Long> scanned = new HashSet<>();   // scanned at least once since it came into range
+    private int firstCursor;
     private int cursor;
     private int lastCx = Integer.MIN_VALUE, lastCy, lastCz;
     private World world;
@@ -74,7 +76,7 @@ public class SectionScanner {
 
     public SectionScanner(EmissiveTextures textures, LightColors colors) { this.textures = textures; this.colors = colors; }
 
-    public void clearCaches() { stateQuads.clear(); sections.clear(); dirty.clear(); order.clear(); { changed = true; version++; } }
+    public void clearCaches() { stateQuads.clear(); sections.clear(); dirty.clear(); order.clear(); scanned.clear(); { changed = true; version++; } }
 
     public void markDirty(BlockPos p) {
         dirty.add(key(p.getX() >> 4, p.getY() >> 4, p.getZ() >> 4));
@@ -104,7 +106,17 @@ public class SectionScanner {
             }
             order.sort((a, b) -> Long.compare(dist(a, pcx, pcy, pcz), dist(b, pcx, pcy, pcz)));
             if (sections.keySet().retainAll(keep)) { changed = true; version++; }
-            cursor = 0;
+            scanned.retainAll(keep);
+            firstCursor = 0;
+            if (cursor >= order.size()) cursor = 0;   // keep going where the refresh was, don't restart near
+        }
+        // sections never scanned yet (just came into range), nearest first, until the whole render
+        // distance is covered: most are skipped by the cheap light check, so this is fast
+        long deadline = System.nanoTime() + 1_500_000L;
+        while (firstCursor < order.size() && System.nanoTime() < deadline) {
+            long k = order.get(firstCursor++);
+            if (scanned.contains(k)) continue;
+            scan(w, k);
         }
         // dirty sections first, then the round-robin refresh
         Iterator<Long> it = dirty.iterator();
@@ -140,11 +152,22 @@ public class SectionScanner {
         return false;
     }
 
+    /** A light with solid blocks on all six sides can't light anything you could see. */
+    private static boolean sealed(World w, BlockPos p) {
+        BlockPos.MutableBlockPos m = new BlockPos.MutableBlockPos();
+        for (EnumFacing f : EnumFacing.VALUES) {
+            m.setPos(p.getX() + f.getXOffset(), p.getY() + f.getYOffset(), p.getZ() + f.getZOffset());
+            if (m.getY() < 0 || m.getY() > 255 || !w.getBlockState(m).isOpaqueCube()) return false;
+        }
+        return true;
+    }
+
     static long key(int cx, int cy, int cz) { return ((long) cx << 40) | ((long) (cy & 0xFF) << 32) | (cz & 0xFFFFFFFFL); }
 
     private void scan(World w, long k) {
+        scanned.add(k);
         int cx = (int) (k >> 40), cy = (int) ((k >> 32) & 0xFF), cz = (int) k;
-        if (!w.isChunkGeneratedAt(cx, cz)) { if (sections.remove(k) != null) { changed = true; version++; } return; }
+        if (!w.isChunkGeneratedAt(cx, cz)) { scanned.remove(k); if (sections.remove(k) != null) { changed = true; version++; } return; }
         Chunk chunk = w.getChunk(cx, cz);
         ExtendedBlockStorage storage = chunk.getBlockStorageArray()[cy];
         Section old = sections.get(k);
@@ -170,7 +193,7 @@ public class SectionScanner {
             if (wantColor) {
                 int light = colors.levelOf(state, state.getLightValue(w, p));
                 boolean buried = state.getMaterial() == Material.LAVA && !w.isAirBlock(p.up());  // only lava surfaces
-                if (light >= 5 && !buried && com.lumen.core.VirtualLights.emission(w, p) < light) {  // not one of our moving lights
+                if (light >= 5 && !buried && !sealed(w, p) && com.lumen.core.VirtualLights.emission(w, p) < light) {  // not one of our moving lights
                     int rgb = colors.colorOf(state, w, p);
                     s.lights.add(new ColorLight(p.toImmutable(), light, rgb));   // white lights cast shadows too
                 }
