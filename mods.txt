@@ -1,0 +1,14 @@
+!mixinbooter-11.18.jar
+asm-9.8.jar
+asm-analysis-9.8.jar
+asm-commons-9.8.jar
+asm-debug-all-5.2.jar
+asm-tree-9.8.jar
+asm-util-9.8.jar
+cleanmix-0.7.3.jar
+gson-2.8.0.jar
+guava-21.0.jar
+lumen-1.0.0.jar
+mixinextras-common-0.5.5.jar
+osxnarratorblocker-1.0.jar
+strip-latest-forge-requirements-1.0.jar

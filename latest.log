@@ -1,0 +1,295 @@
+[20:32:54] [main/INFO] [LaunchWrapper]: Loading tweak class name net.minecraftforge.fml.common.launcher.FMLTweaker
+[20:32:54] [main/INFO] [LaunchWrapper]: Using primary tweak class name net.minecraftforge.fml.common.launcher.FMLTweaker
+[20:32:54] [main/INFO] [LaunchWrapper]: Calling tweak class net.minecraftforge.fml.common.launcher.FMLTweaker
+[20:32:54] [main/INFO] [FML]: Forge Mod Loader version 14.23.5.2847 for Minecraft 1.12.2 loading
+[20:32:54] [main/INFO] [FML]: Java is OpenJDK 64-Bit Server VM, version 1.8.0_512, running on Linux:amd64:7.0.0-1019-azure, installed at /home/runner/.gradle/jdks/azul_systems__inc_-8-amd64-linux.2/jre
+[20:32:54] [main/ERROR] [FML]: Apache Maven library folder was not in the format expected. Using default libraries directory.
+[20:32:54] [main/ERROR] [FML]: Full: /home/runner/.gradle/caches/modules-2/files-2.1/org.apache.maven/maven-artifact/3.5.3/7dc72b6d6d8a6dced3d294ed54c2cc3515ade9f4/maven-artifact-3.5.3.jar
+[20:32:54] [main/ERROR] [FML]: Trimmed: /home/runner/.gradle/caches/modules-2/files-2.1/org.apache.maven/maven-artifact/3.5.3/
+[20:32:54] [main/WARN] [FML]: The coremod FMLCorePlugin (net.minecraftforge.fml.relauncher.FMLCorePlugin) is not signed!
+[20:32:54] [main/WARN] [FML]: The coremod FMLForgePlugin (net.minecraftforge.classloading.FMLForgePlugin) is not signed!
+[20:32:54] [main/INFO] [FML]: Searching /home/runner/work/Lumen/Lumen/run/obfuscated/mods for mods
+[20:32:54] [main/WARN] [FML]: The coremod zone.rong.mixinbooter.MixinBooterPlugin does not have a MCVersion annotation, it may cause issues with this version of Minecraft
+[20:32:54] [main/WARN] [FML]: The coremod MixinBooter (zone.rong.mixinbooter.MixinBooterPlugin) is not signed!
+[20:32:54] [main/INFO] [CleanMix]: SpongePowered MIXIN Subsystem Version=0.8.7 Source=file:/home/runner/work/Lumen/Lumen/run/obfuscated/mods/!mixinbooter-11.18.jar Service=MixinBooter Env=CLIENT
+[20:32:54] [main/INFO] [CleanMix]: Attempting to load Fernflower decompiler (Threaded mode)
+[20:32:54] [main/INFO] [CleanMix]: Fernflower decompiler was successfully initialised from !mixinbooter-11.18.jar, exported classes will be decompiled in a separate thread
+[20:32:54] [main/INFO] [FML]: Searching /home/runner/work/Lumen/Lumen/run/obfuscated/mods for mods
+[20:32:56] [main/INFO] [MixinBooter]: Finished gathering 2 mods, took 1696 ms.
+[20:32:56] [main/WARN] [FML]: Found FMLCorePluginContainsFMLMod marker in lumen-1.0.0.jar. This is not recommended, @Mods should be in a separate jar from the coremod.
+[20:32:56] [main/INFO] [MixinBooter]: Initializing MixinExtras...
+[20:32:56] [main/WARN] [FML]: The coremod Lumen (com.lumen.core.LumenLoadingPlugin) is not signed!
+[20:32:56] [main/WARN] [FML]: Found FMLCorePluginContainsFMLMod marker in osxnarratorblocker-1.0.jar. This is not recommended, @Mods should be in a separate jar from the coremod.
+[20:32:56] [main/WARN] [FML]: The coremod com.cleanroommc.osxnarratorblocker.OSXNarratorBlocker does not have a MCVersion annotation, it may cause issues with this version of Minecraft
+[20:32:56] [main/WARN] [FML]: The coremod OSXNarratorBlocker (com.cleanroommc.osxnarratorblocker.OSXNarratorBlocker) is not signed!
+[20:32:56] [main/WARN] [FML]: The coremod com.cleanroommc.stripforgereq.StripLatestForgeRequirements does not have a MCVersion annotation, it may cause issues with this version of Minecraft
+[20:32:56] [main/WARN] [FML]: The coremod StripLatestForgeRequirements (com.cleanroommc.stripforgereq.StripLatestForgeRequirements) is not signed!
+[20:32:56] [main/INFO] [LaunchWrapper]: Loading tweak class name zone.rong.mixinbooter.service.CoremodsRescuer
+[20:32:56] [main/INFO] [LaunchWrapper]: Loading tweak class name net.minecraftforge.fml.common.launcher.FMLInjectionAndSortingTweaker
+[20:32:56] [main/INFO] [LaunchWrapper]: Loading tweak class name org.spongepowered.asm.mixin.EnvironmentStateTweaker
+[20:32:56] [main/INFO] [LaunchWrapper]: Loading tweak class name net.minecraftforge.fml.common.launcher.FMLDeobfTweaker
+[20:32:56] [main/INFO] [LaunchWrapper]: Calling tweak class net.minecraftforge.fml.common.launcher.FMLInjectionAndSortingTweaker
+[20:32:56] [main/INFO] [LaunchWrapper]: Calling tweak class net.minecraftforge.fml.common.launcher.FMLInjectionAndSortingTweaker
+[20:32:56] [main/INFO] [LaunchWrapper]: Calling tweak class net.minecraftforge.fml.relauncher.CoreModManager$FMLPluginWrapper
+[20:32:56] [main/INFO] [MixinBooter]: Loading early loader com.lumen.core.LumenLoadingPlugin for its mixins.
+[20:32:56] [main/INFO] [MixinBooter]: Adding [mixins.lumen.json] mixin configuration.
+[20:32:56] [main/INFO] [MixinBooter]: Loading early loader com.cleanroommc.osxnarratorblocker.OSXNarratorBlocker for its mixins.
+[20:32:56] [main/INFO] [MixinBooter]: Adding [mixins.osxnarratorblocker.json] mixin configuration.
+[20:32:56] [main/INFO] [MixinBooter]: Loading early loader com.cleanroommc.stripforgereq.StripLatestForgeRequirements for its mixins.
+[20:32:56] [main/INFO] [MixinBooter]: Adding [mixins.striplatestforgerequirements.json] mixin configuration.
+[20:32:56] [main/INFO] [LaunchWrapper]: Calling tweak class zone.rong.mixinbooter.service.CoremodsRescuer
+[20:32:56] [main/INFO] [LaunchWrapper]: Calling tweak class net.minecraftforge.fml.relauncher.CoreModManager$FMLPluginWrapper
+[20:32:57] [main/INFO] [FML]: Found valid fingerprint for Minecraft. Certificate fingerprint cd99959656f753dc28d863b46769f7f8fbaefcfc
+[20:32:57] [main/ERROR] [FML]: FML appears to be missing any signature data. This is not a good thing
+[20:32:57] [main/INFO] [LaunchWrapper]: Calling tweak class net.minecraftforge.fml.relauncher.CoreModManager$FMLPluginWrapper
+[20:32:57] [main/INFO] [LaunchWrapper]: Calling tweak class net.minecraftforge.fml.relauncher.CoreModManager$FMLPluginWrapper
+[20:32:57] [main/INFO] [LaunchWrapper]: Calling tweak class net.minecraftforge.fml.relauncher.CoreModManager$FMLPluginWrapper
+[20:32:57] [main/INFO] [LaunchWrapper]: Calling tweak class org.spongepowered.asm.mixin.EnvironmentStateTweaker
+[20:32:57] [main/INFO] [LaunchWrapper]: Calling tweak class net.minecraftforge.fml.common.launcher.FMLDeobfTweaker
+[20:32:57] [main/INFO] [LaunchWrapper]: Calling tweak class net.minecraftforge.fml.relauncher.CoreModManager$FMLPluginWrapper
+[20:32:57] [main/INFO] [LaunchWrapper]: Loading tweak class name net.minecraftforge.fml.common.launcher.TerminalTweaker
+[20:32:57] [main/INFO] [LaunchWrapper]: Calling tweak class net.minecraftforge.fml.common.launcher.TerminalTweaker
+[20:32:57] [main/INFO] [LaunchWrapper]: Launching wrapped minecraft {net.minecraft.client.main.Main}
+[20:32:57] [main/INFO] [MixinExtras|Service]: Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.5.5).
+[20:32:58] [Decompiler Thread/INFO] [fernflower]: Decompiling net/minecraft/entity/Entity
+[20:32:58] [Client thread/INFO] [net.minecraft.client.Minecraft]: Setting user: Developer
+[20:32:59] [Decompiler Thread/ERROR] [fernflower]: Unable to simplify switch on enum: 1 not found, available: {}
+[20:32:59] [Decompiler Thread/ERROR] [fernflower]: Unable to simplify switch on enum: 1 not found, available: {}
+[20:32:59] [Decompiler Thread/INFO] [fernflower]: Writing /home/runner/work/Lumen/Lumen/run/obfuscated/.mixin.out/java/net/minecraft/entity/Entity.java
+[20:32:59] [Decompiler Thread/INFO] [fernflower]: Decompiling net/minecraft/block/Block
+[20:33:00] [Decompiler Thread/ERROR] [fernflower]: Unable to simplify switch on enum: 1 not found, available: {}
+[20:33:00] [Decompiler Thread/ERROR] [fernflower]: Unable to simplify switch on enum: 1 not found, available: {}
+[20:33:00] [Decompiler Thread/INFO] [fernflower]: Writing /home/runner/work/Lumen/Lumen/run/obfuscated/.mixin.out/java/net/minecraft/block/Block.java
+[20:33:00] [Client thread/INFO] [net.minecraft.client.Minecraft]: LWJGL Version: 2.9.4
+[20:33:01] [Client thread/INFO] [FML]: Could not load splash.properties, will create a default one
+[20:33:01] [Decompiler Thread/INFO] [fernflower]: Decompiling net/minecraft/crash/CrashReport
+[20:33:01] [Client thread/INFO] [FML]: -- System Details --
+Details:
+	Minecraft Version: 1.12.2
+	Operating System: Linux (amd64) version 7.0.0-1019-azure
+	Java Version: 1.8.0_512, Azul Systems, Inc.
+	Java VM Version: OpenJDK 64-Bit Server VM (mixed mode), Azul Systems, Inc.
+	Memory: 1598871472 bytes (1524 MB) / 2464153600 bytes (2350 MB) up to 5726797824 bytes (5461 MB)
+	JVM Flags: 2 total; -Xms1G -Xmx6G
+	IntCache: cache: 0, tcache: 0, allocated: 0, tallocated: 0
+	FML: 
+	Loaded coremods (and transformers): 
+Lumen (lumen-1.0.0.jar)
+  
+MixinBooter (!mixinbooter-11.18.jar)
+  
+OSXNarratorBlocker (osxnarratorblocker-1.0.jar)
+  
+StripLatestForgeRequirements (strip-latest-forge-requirements-1.0.jar)
+  
+	GL info: ' Vendor: 'Mesa' Version: '4.5 (Compatibility Profile) Mesa 26.0.8-1ubuntu0.3' Renderer: 'llvmpipe (LLVM 21.1.8, 256 bits)'
+[20:33:01] [Client thread/INFO] [FML]: MinecraftForge v14.23.5.2847 Initialized
+[20:33:01] [Client thread/INFO] [FML]: Starts to replace vanilla recipe ingredients with ore ingredients.
+[20:33:01] [Decompiler Thread/INFO] [fernflower]: Writing /home/runner/work/Lumen/Lumen/run/obfuscated/.mixin.out/java/net/minecraft/crash/CrashReport.java
+[20:33:01] [Client thread/INFO] [FML]: Invalid recipe found with multiple oredict ingredients in the same ingredient...
+[20:33:01] [Client thread/INFO] [FML]: Replaced 1227 ore ingredients
+[20:33:01] [Decompiler Thread/INFO] [fernflower]: Decompiling net/minecraftforge/fml/common/LoadController
+[20:33:01] [Client thread/INFO] [FML]: Searching /home/runner/work/Lumen/Lumen/run/obfuscated/mods for mods
+[20:33:01] [Decompiler Thread/INFO] [fernflower]: Writing /home/runner/work/Lumen/Lumen/run/obfuscated/.mixin.out/java/net/minecraftforge/fml/common/LoadController.java
+[20:33:01] [Decompiler Thread/INFO] [fernflower]: Decompiling net/minecraftforge/fml/common/discovery/asm/ASMModParser
+[20:33:02] [Decompiler Thread/INFO] [fernflower]: Writing /home/runner/work/Lumen/Lumen/run/obfuscated/.mixin.out/java/net/minecraftforge/fml/common/discovery/asm/ASMModParser.java
+[20:33:02] [Decompiler Thread/INFO] [fernflower]: Decompiling net/minecraftforge/fml/common/FMLModContainer
+[20:33:02] [Decompiler Thread/INFO] [fernflower]: Writing /home/runner/work/Lumen/Lumen/run/obfuscated/.mixin.out/java/net/minecraftforge/fml/common/FMLModContainer.java
+[20:33:03] [Client thread/INFO] [FML]: Forge Mod Loader has identified 6 mods to load
+[20:33:03] [Client thread/INFO] [FML]: FML has found a non-mod file asm-9.8.jar in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[20:33:03] [Client thread/INFO] [FML]: FML has found a non-mod file asm-analysis-9.8.jar in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[20:33:03] [Client thread/INFO] [FML]: FML has found a non-mod file asm-commons-9.8.jar in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[20:33:03] [Client thread/INFO] [FML]: FML has found a non-mod file asm-debug-all-5.2.jar in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[20:33:03] [Client thread/INFO] [FML]: FML has found a non-mod file asm-tree-9.8.jar in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[20:33:03] [Client thread/INFO] [FML]: FML has found a non-mod file asm-util-9.8.jar in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[20:33:03] [Client thread/INFO] [FML]: FML has found a non-mod file cleanmix-0.7.3.jar in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[20:33:03] [Client thread/INFO] [FML]: FML has found a non-mod file gson-2.8.0.jar in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[20:33:03] [Client thread/INFO] [FML]: FML has found a non-mod file guava-21.0.jar in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[20:33:03] [Client thread/INFO] [FML]: FML has found a non-mod file mixinextras-common-0.5.5.jar in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[20:33:03] [Client thread/INFO] [FML]: FML has found a non-mod file osxnarratorblocker-1.0.jar in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[20:33:03] [Client thread/INFO] [FML]: Attempting connection with missing mods [minecraft, mcp, mixinbooter, FML, forge, lumen] at CLIENT
+[20:33:03] [Client thread/INFO] [FML]: Attempting connection with missing mods [minecraft, mcp, mixinbooter, FML, forge, lumen] at SERVER
+[20:33:03] [Client thread/INFO] [net.minecraft.client.resources.SimpleReloadableResourceManager]: Reloading ResourceManager: Default, FMLFileResourcePack:Forge Mod Loader, FMLFileResourcePack:Minecraft Forge, FMLFileResourcePack:Lumen
+[20:33:03] [Decompiler Thread/INFO] [fernflower]: Decompiling net/minecraft/client/renderer/EntityRenderer
+[20:33:03] [Client thread/INFO] [FML]: Processing ObjectHolder annotations
+[20:33:03] [Client thread/INFO] [FML]: Found 1169 ObjectHolder annotations
+[20:33:03] [Client thread/INFO] [FML]: Identifying ItemStackHolder annotations
+[20:33:03] [Client thread/INFO] [FML]: Found 0 ItemStackHolder annotations
+[20:33:03] [Client thread/INFO] [FML]: Configured a dormant chunk cache size of 0
+[20:33:03] [Forge Version Check/INFO] [forge.VersionCheck]: [forge] Starting version check at http://files.minecraftforge.net/maven/net/minecraftforge/forge/promotions_slim.json
+[20:33:03] [Client thread/INFO] [FML]: Applying holder lookups
+[20:33:03] [Client thread/INFO] [FML]: Holder lookups applied
+[20:33:03] [Client thread/INFO] [FML]: Applying holder lookups
+[20:33:03] [Client thread/INFO] [FML]: Holder lookups applied
+[20:33:03] [Client thread/INFO] [FML]: Applying holder lookups
+[20:33:03] [Client thread/INFO] [FML]: Holder lookups applied
+[20:33:03] [Client thread/INFO] [FML]: Applying holder lookups
+[20:33:03] [Client thread/INFO] [FML]: Holder lookups applied
+[20:33:03] [Client thread/INFO] [FML]: Injecting itemstacks
+[20:33:03] [Client thread/INFO] [FML]: Itemstack injection complete
+[20:33:04] [Thread-3/INFO] [FML]: Using sync timing. 200 frames of Display.update took 663992743 nanos
+[20:33:04] [Decompiler Thread/INFO] [fernflower]: Writing /home/runner/work/Lumen/Lumen/run/obfuscated/.mixin.out/java/net/minecraft/client/renderer/EntityRenderer.java
+[20:33:04] [Sound Library Loader/INFO] [net.minecraft.client.audio.SoundManager]: Starting up SoundSystem...
+[20:33:04] [Thread-4/INFO] [net.minecraft.client.audio.SoundManager]: Initializing LWJGL OpenAL
+[20:33:04] [Thread-4/INFO] [net.minecraft.client.audio.SoundManager]: (The LWJGL binding of OpenAL.  For more information, see http://www.lwjgl.org)
+[20:33:04] [Thread-4/ERROR] [net.minecraft.client.audio.SoundManager]: Error in class 'LibraryLWJGLOpenAL'
+[20:33:04] [Thread-4/ERROR] [net.minecraft.client.audio.SoundManager]: Unable to initialize OpenAL.  Probable cause: OpenAL not supported.
+[20:33:04] [Thread-4/WARN] [net.minecraft.client.audio.SoundManager]: ERROR MESSAGE:
+[20:33:04] [Thread-4/INFO] [net.minecraft.client.audio.SoundManager]: Could not locate OpenAL library.
+[20:33:04] [Thread-4/WARN] [net.minecraft.client.audio.SoundManager]: STACK TRACE:
+[20:33:04] [Thread-4/INFO] [net.minecraft.client.audio.SoundManager]: org.lwjgl.openal.AL.create(AL.java:156)
+[20:33:04] [Thread-4/INFO] [net.minecraft.client.audio.SoundManager]: org.lwjgl.openal.AL.create(AL.java:102)
+[20:33:04] [Thread-4/INFO] [net.minecraft.client.audio.SoundManager]: org.lwjgl.openal.AL.create(AL.java:206)
+[20:33:04] [Thread-4/INFO] [net.minecraft.client.audio.SoundManager]: paulscode.sound.libraries.LibraryLWJGLOpenAL.init(LibraryLWJGLOpenAL.java:164)
+[20:33:04] [Thread-4/INFO] [net.minecraft.client.audio.SoundManager]: paulscode.sound.SoundSystem.CommandNewLibrary(SoundSystem.java:1576)
+[20:33:04] [Thread-4/INFO] [net.minecraft.client.audio.SoundManager]: paulscode.sound.SoundSystem.CommandQueue(SoundSystem.java:2572)
+[20:33:04] [Thread-4/INFO] [net.minecraft.client.audio.SoundManager]: paulscode.sound.CommandThread.run(CommandThread.java:121)
+[20:33:04] [Forge Version Check/INFO] [forge.VersionCheck]: [forge] Found status: OUTDATED Target: 14.23.5.2859
+[20:33:04] [Sound Library Loader/WARN] [net.minecraft.client.audio.SoundManager]: ERROR MESSAGE:
+[20:33:04] [Sound Library Loader/INFO] [net.minecraft.client.audio.SoundManager]: Could not locate OpenAL library.
+[20:33:04] [Sound Library Loader/INFO] [net.minecraft.client.audio.SoundManager]: Starting up SoundSystem...
+[20:33:05] [Thread-6/INFO] [net.minecraft.client.audio.SoundManager]: Switching to No Sound
+[20:33:05] [Thread-6/INFO] [net.minecraft.client.audio.SoundManager]: (Silent Mode)
+[20:33:05] [Sound Library Loader/INFO] [net.minecraft.client.audio.SoundManager]: Sound engine started
+[20:33:05] [Client thread/INFO] [FML]: Max texture size: 16384
+[20:33:06] [Client thread/INFO] [net.minecraft.client.renderer.texture.TextureMap]: Created: 512x512 textures-atlas
+[20:33:06] [Decompiler Thread/INFO] [fernflower]: Decompiling net/minecraft/client/renderer/entity/Render
+[20:33:07] [Decompiler Thread/INFO] [fernflower]: Writing /home/runner/work/Lumen/Lumen/run/obfuscated/.mixin.out/java/net/minecraft/client/renderer/entity/Render.java
+[20:33:07] [Client thread/INFO] [FML]: Applying holder lookups
+[20:33:07] [Client thread/INFO] [FML]: Holder lookups applied
+[20:33:07] [Client thread/INFO] [FML]: Injecting itemstacks
+[20:33:07] [Client thread/INFO] [FML]: Itemstack injection complete
+[20:33:07] [Client thread/INFO] [FML]: Forge Mod Loader has successfully loaded 6 mods
+[20:33:07] [Decompiler Thread/INFO] [fernflower]: Decompiling com/mojang/text2speech/Narrator
+[20:33:07] [Decompiler Thread/INFO] [fernflower]: Writing /home/runner/work/Lumen/Lumen/run/obfuscated/.mixin.out/java/com/mojang/text2speech/Narrator.java
+[20:33:07] [Client thread/WARN] [com.mojang.text2speech.NarratorLinux]: ERROR : Couldn't load Narrator library : Unable to load library 'fliteWrapper': Can't obtain InputStream for linux-x86-64/libfliteWrapper.so
+[20:33:08] [Client thread/INFO] [net.minecraft.client.resources.SimpleReloadableResourceManager]: Reloading ResourceManager: Default, FMLFileResourcePack:Forge Mod Loader, FMLFileResourcePack:Minecraft Forge, FMLFileResourcePack:Lumen, LumenTestPack
+[20:33:08] [Realms Notification Availability checker #1/INFO] [com.mojang.realmsclient.client.RealmsClient]: Could not authorize you against Realms server: java.lang.RuntimeException: Failed to parse into SignedJWT: 0
+[20:33:08] [Client thread/INFO] [net.minecraft.client.audio.SoundManager]: SoundSystem shutting down...
+[20:33:08] [Client thread/WARN] [net.minecraft.client.audio.SoundManager]: Author: Paul Lamb, www.paulscode.com
+[20:33:08] [Sound Library Loader/INFO] [net.minecraft.client.audio.SoundManager]: Starting up SoundSystem...
+[20:33:08] [Thread-9/INFO] [net.minecraft.client.audio.SoundManager]: Initializing LWJGL OpenAL
+[20:33:08] [Thread-9/INFO] [net.minecraft.client.audio.SoundManager]: (The LWJGL binding of OpenAL.  For more information, see http://www.lwjgl.org)
+[20:33:08] [Thread-9/ERROR] [net.minecraft.client.audio.SoundManager]: Error in class 'LibraryLWJGLOpenAL'
+[20:33:08] [Thread-9/ERROR] [net.minecraft.client.audio.SoundManager]: Unable to initialize OpenAL.  Probable cause: OpenAL not supported.
+[20:33:08] [Thread-9/WARN] [net.minecraft.client.audio.SoundManager]: ERROR MESSAGE:
+[20:33:08] [Thread-9/INFO] [net.minecraft.client.audio.SoundManager]: Could not locate OpenAL library.
+[20:33:08] [Thread-9/WARN] [net.minecraft.client.audio.SoundManager]: STACK TRACE:
+[20:33:08] [Thread-9/INFO] [net.minecraft.client.audio.SoundManager]: org.lwjgl.openal.AL.create(AL.java:156)
+[20:33:08] [Thread-9/INFO] [net.minecraft.client.audio.SoundManager]: org.lwjgl.openal.AL.create(AL.java:102)
+[20:33:08] [Thread-9/INFO] [net.minecraft.client.audio.SoundManager]: org.lwjgl.openal.AL.create(AL.java:206)
+[20:33:08] [Thread-9/INFO] [net.minecraft.client.audio.SoundManager]: paulscode.sound.libraries.LibraryLWJGLOpenAL.init(LibraryLWJGLOpenAL.java:164)
+[20:33:08] [Thread-9/INFO] [net.minecraft.client.audio.SoundManager]: paulscode.sound.SoundSystem.CommandNewLibrary(SoundSystem.java:1576)
+[20:33:08] [Thread-9/INFO] [net.minecraft.client.audio.SoundManager]: paulscode.sound.SoundSystem.CommandQueue(SoundSystem.java:2572)
+[20:33:08] [Thread-9/INFO] [net.minecraft.client.audio.SoundManager]: paulscode.sound.CommandThread.run(CommandThread.java:121)
+[20:33:09] [Sound Library Loader/WARN] [net.minecraft.client.audio.SoundManager]: ERROR MESSAGE:
+[20:33:09] [Sound Library Loader/INFO] [net.minecraft.client.audio.SoundManager]: Could not locate OpenAL library.
+[20:33:09] [Sound Library Loader/INFO] [net.minecraft.client.audio.SoundManager]: Starting up SoundSystem...
+[20:33:09] [Thread-11/INFO] [net.minecraft.client.audio.SoundManager]: Switching to No Sound
+[20:33:09] [Thread-11/INFO] [net.minecraft.client.audio.SoundManager]: (Silent Mode)
+[20:33:09] [Client thread/INFO] [FML]: Max texture size: 16384
+[20:33:09] [Client thread/INFO] [net.minecraft.client.renderer.texture.TextureMap]: Created: 512x512 textures-atlas
+[20:33:09] [Sound Library Loader/INFO] [net.minecraft.client.audio.SoundManager]: Sound engine started
+[20:33:10] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: test resource pack installed: 1 pack(s) active
+[20:33:10] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: creating world
+[20:33:10] [Server thread/INFO] [net.minecraft.server.integrated.IntegratedServer]: Starting integrated minecraft server version 1.12.2
+[20:33:10] [Server thread/INFO] [net.minecraft.server.integrated.IntegratedServer]: Generating keypair
+[20:33:10] [Server thread/INFO] [FML]: Injecting existing registry data into this server instance
+[20:33:10] [Server thread/INFO] [FML]: Applying holder lookups
+[20:33:10] [Server thread/INFO] [FML]: Holder lookups applied
+[20:33:11] [Server thread/INFO] [FML]: Loading dimension 0 (Lumen AutoTest) (net.minecraft.server.integrated.IntegratedServer@767c86fc)
+[20:33:11] [Server thread/INFO] [net.minecraft.advancements.AdvancementList]: Loaded 488 advancements
+[20:33:11] [Server thread/INFO] [FML]: Loading dimension -1 (Lumen AutoTest) (net.minecraft.server.integrated.IntegratedServer@767c86fc)
+[20:33:11] [Server thread/INFO] [FML]: Loading dimension 1 (Lumen AutoTest) (net.minecraft.server.integrated.IntegratedServer@767c86fc)
+[20:33:11] [Server thread/INFO] [net.minecraft.server.MinecraftServer]: Preparing start region for level 0
+[20:33:12] [Server thread/INFO] [net.minecraft.server.MinecraftServer]: Preparing spawn area: 11%
+[20:33:13] [Server thread/INFO] [net.minecraft.server.MinecraftServer]: Preparing spawn area: 28%
+[20:33:14] [Server thread/INFO] [net.minecraft.server.MinecraftServer]: Preparing spawn area: 47%
+[20:33:15] [Server thread/INFO] [net.minecraft.server.MinecraftServer]: Preparing spawn area: 67%
+[20:33:16] [Server thread/INFO] [net.minecraft.server.MinecraftServer]: Preparing spawn area: 85%
+[20:33:17] [Server thread/INFO] [FML]: Unloading dimension -1
+[20:33:17] [Server thread/INFO] [FML]: Unloading dimension 1
+[20:33:17] [Server thread/INFO] [net.minecraft.server.integrated.IntegratedServer]: Changing view distance to 6, from 10
+[20:33:18] [Netty Local Client IO #0/INFO] [FML]: Server protocol version 2
+[20:33:18] [Netty Server IO #1/INFO] [FML]: Client protocol version 2
+[20:33:18] [Netty Server IO #1/INFO] [FML]: Client attempting to join with 6 mods : minecraft@1.12.2,FML@8.0.99.99,lumen@1.0.0,forge@14.23.5.2847,mixinbooter@11.18,mcp@9.42
+[20:33:18] [Netty Local Client IO #0/INFO] [FML]: [Netty Local Client IO #0] Client side modded connection established
+[20:33:18] [Server thread/INFO] [FML]: [Server thread] Server side modded connection established
+[20:33:18] [Server thread/INFO] [net.minecraft.server.management.PlayerList]: Developer[local:E:2d67340d] logged in with entity id 1033 at (192.5, 70.0, 246.5)
+[20:33:18] [Server thread/INFO] [net.minecraft.server.MinecraftServer]: Developer joined the game
+[20:33:19] [Server thread/INFO] [net.minecraft.server.integrated.IntegratedServer]: Saving and pausing game...
+[20:33:19] [Server thread/INFO] [net.minecraft.server.MinecraftServer]: Saving chunks for level 'Lumen AutoTest'/overworld
+[20:33:19] [Client thread/INFO] [Lumen]: Lumen GPU lighting on (llvmpipe (LLVM 21.1.8, 256 bits))
+[20:33:19] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: joined world
+[20:33:19] [Client thread/ERROR] [net.minecraft.client.Minecraft]: ########## GL ERROR ##########
+[20:33:19] [Client thread/ERROR] [net.minecraft.client.Minecraft]: @ Pre render
+[20:33:19] [Client thread/ERROR] [net.minecraft.client.Minecraft]: 1282: Invalid operation
+[20:33:39] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: spawn at BlockPos{x=192, y=70, z=246} biome=Sunflower Plains
+[20:33:50] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 1_dynamic_torch_night_cpu at BlockPos{x=192, y=70, z=206} | moving lights=0 relights=0 engineHits=0 | block lights=191 sections=439 quads=49660 pending=0 lastSection=26us | movingLayers=2 quads=38143 lastMoving=105051us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=12,4,15 volFailed=0 unloadedSkips=377 geos=141/84 geoReady=65 gpuSections=65 gpuQuads=15706 movingLights=0 movingSections=0 | entityShadows=1/48q | glow quads=6 packTex=0 autoTex=1 | shadow quads=387242 pending=0 lastColumnBuild=7526us | cpu: tick avg 4.184ms worst 65.88ms, frame avg 27.904ms
+[20:34:02] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 1_dynamic_torch_night_lumen_on at BlockPos{x=192, y=70, z=206} | moving lights=0 relights=0 engineHits=0 | block lights=191 sections=439 quads=28424 pending=0 lastSection=17us | movingLayers=2 quads=0 lastMoving=105051us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=12,4,12 volFailed=0 unloadedSkips=377 geos=212/137 geoReady=87 gpuSections=87 gpuQuads=34707 movingLights=2 movingSections=12 | entityShadows=1/48q | glow quads=6 packTex=0 autoTex=1 | shadow quads=387242 pending=0 lastColumnBuild=10917us | cpu: tick avg 3.025ms worst 17.26ms, frame avg 38.793ms
+[20:34:10] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 1_dynamic_torch_night_vanilla at BlockPos{x=192, y=70, z=206} | moving lights=0 relights=0 engineHits=0 | block lights=191 sections=439 quads=28424 pending=0 lastSection=17us | movingLayers=2 quads=0 lastMoving=105051us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=12,4,12 volFailed=0 unloadedSkips=377 geos=212/137 geoReady=87 gpuSections=87 gpuQuads=34707 movingLights=2 movingSections=12 | entityShadows=1/48q | glow quads=6 packTex=0 autoTex=1 | shadow quads=387242 pending=0 lastColumnBuild=10917us | cpu: tick avg 3.025ms worst 17.26ms, frame avg 38.793ms
+[20:34:21] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 2_dynamic_torch_cave_cpu at BlockPos{x=232, y=30, z=241} | moving lights=0 relights=0 engineHits=0 | block lights=705 sections=625 quads=161675 pending=0 lastSection=96us | movingLayers=1 quads=639 lastMoving=15921us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=12,4,12 volFailed=0 unloadedSkips=377 geos=212/137 geoReady=87 gpuSections=87 gpuQuads=34707 movingLights=2 movingSections=12 | entityShadows=0/0q | glow quads=43 packTex=1 autoTex=4 | shadow quads=328434 pending=0 lastColumnBuild=10348us | cpu: tick avg 5.548ms worst 25.09ms, frame avg 23.938ms
+[20:34:33] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 2_dynamic_torch_cave_lumen_on at BlockPos{x=232, y=30, z=241} | moving lights=0 relights=0 engineHits=0 | block lights=705 sections=625 quads=68392 pending=0 lastSection=7274us | movingLayers=1 quads=0 lastMoving=15921us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=14,1,15 volFailed=0 unloadedSkips=377 geos=277/190 geoReady=162 gpuSections=162 gpuQuads=53529 movingLights=1 movingSections=10 | entityShadows=0/0q | glow quads=43 packTex=1 autoTex=4 | shadow quads=327885 pending=0 lastColumnBuild=6099us | cpu: tick avg 2.562ms worst 16.46ms, frame avg 35.246ms
+[20:34:41] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 2_dynamic_torch_cave_vanilla at BlockPos{x=232, y=30, z=241} | moving lights=0 relights=0 engineHits=0 | block lights=705 sections=625 quads=68392 pending=0 lastSection=7274us | movingLayers=1 quads=0 lastMoving=15921us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=14,1,15 volFailed=0 unloadedSkips=377 geos=277/190 geoReady=162 gpuSections=162 gpuQuads=53529 movingLights=1 movingSections=10 | entityShadows=0/0q | glow quads=43 packTex=1 autoTex=4 | shadow quads=327885 pending=0 lastColumnBuild=6099us | cpu: tick avg 2.562ms worst 16.46ms, frame avg 35.246ms
+[20:34:55] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 3_colored_lights_lumen_on at BlockPos{x=232, y=77, z=215} | moving lights=0 relights=0 engineHits=0 | block lights=208 sections=460 quads=34871 pending=5 lastSection=1293us | movingLayers=1 quads=0 lastMoving=15921us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=14,4,13 volFailed=0 unloadedSkips=377 geos=184/125 geoReady=111 gpuSections=111 gpuQuads=41204 movingLights=0 movingSections=0 | entityShadows=1/42q | glow quads=9 packTex=1 autoTex=4 | shadow quads=345090 pending=6 lastColumnBuild=2223us | cpu: tick avg 2.165ms worst 16.73ms, frame avg 48.420ms
+[20:35:03] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 3_colored_lights_vanilla at BlockPos{x=232, y=77, z=215} | moving lights=0 relights=0 engineHits=0 | block lights=208 sections=460 quads=34871 pending=5 lastSection=1293us | movingLayers=1 quads=0 lastMoving=15921us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=14,4,13 volFailed=0 unloadedSkips=377 geos=184/125 geoReady=111 gpuSections=111 gpuQuads=41204 movingLights=0 movingSections=0 | entityShadows=1/42q | glow quads=9 packTex=1 autoTex=4 | shadow quads=345090 pending=6 lastColumnBuild=2223us | cpu: tick avg 2.165ms worst 16.73ms, frame avg 48.420ms
+[20:35:18] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 3b_torch_shadows_cpu at BlockPos{x=152, y=80, z=213} | moving lights=0 relights=0 engineHits=0 | block lights=125 sections=280 quads=47144 pending=5 lastSection=21030us | movingLayers=0 quads=0 lastMoving=15921us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=14,4,13 volFailed=0 unloadedSkips=377 geos=184/125 geoReady=111 gpuSections=111 gpuQuads=41204 movingLights=0 movingSections=0 | entityShadows=1/42q | glow quads=19 packTex=1 autoTex=4 | shadow quads=347533 pending=6 lastColumnBuild=4960us | cpu: tick avg 3.352ms worst 14.99ms, frame avg 17.983ms
+[20:35:31] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 3b_torch_shadows_lumen_on at BlockPos{x=152, y=80, z=213} | moving lights=0 relights=0 engineHits=0 | block lights=125 sections=280 quads=24443 pending=0 lastSection=1881us | movingLayers=0 quads=0 lastMoving=15921us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=9,5,13 volFailed=0 unloadedSkips=377 geos=87/58 geoReady=47 gpuSections=47 gpuQuads=20567 movingLights=0 movingSections=0 | entityShadows=1/42q | glow quads=19 packTex=1 autoTex=4 | shadow quads=347639 pending=0 lastColumnBuild=2363us | cpu: tick avg 2.058ms worst 15.05ms, frame avg 28.489ms
+[20:35:38] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 3b_torch_shadows_vanilla at BlockPos{x=152, y=80, z=213} | moving lights=0 relights=0 engineHits=0 | block lights=125 sections=280 quads=24443 pending=0 lastSection=1881us | movingLayers=0 quads=0 lastMoving=15921us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=9,5,13 volFailed=0 unloadedSkips=377 geos=87/58 geoReady=47 gpuSections=47 gpuQuads=20567 movingLights=0 movingSections=0 | entityShadows=1/42q | glow quads=19 packTex=1 autoTex=4 | shadow quads=347639 pending=0 lastColumnBuild=2363us | cpu: tick avg 2.058ms worst 15.05ms, frame avg 28.489ms
+[20:35:54] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 3c_stairs_grass_lumen_on at BlockPos{x=152, y=73, z=293} | moving lights=0 relights=0 engineHits=0 | block lights=215 sections=481 quads=55050 pending=5 lastSection=6131us | movingLayers=0 quads=0 lastMoving=15921us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=9,4,18 volFailed=0 unloadedSkips=377 geos=160/128 geoReady=100 gpuSections=100 gpuQuads=47854 movingLights=0 movingSections=0 | entityShadows=1/0q | glow quads=25 packTex=1 autoTex=4 | shadow quads=169107 pending=6 lastColumnBuild=4920us | cpu: tick avg 3.547ms worst 18.22ms, frame avg 36.567ms
+[20:36:02] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 3c_stairs_grass_vanilla at BlockPos{x=152, y=73, z=293} | moving lights=0 relights=0 engineHits=0 | block lights=215 sections=481 quads=55050 pending=5 lastSection=6131us | movingLayers=0 quads=0 lastMoving=15921us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=9,4,18 volFailed=0 unloadedSkips=377 geos=160/128 geoReady=100 gpuSections=100 gpuQuads=47854 movingLights=0 movingSections=0 | entityShadows=1/0q | glow quads=25 packTex=1 autoTex=4 | shadow quads=169107 pending=6 lastColumnBuild=4920us | cpu: tick avg 3.547ms worst 18.22ms, frame avg 36.567ms
+[20:36:17] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 3d_gaps_bars_ladder_fence_cpu at BlockPos{x=272, y=79, z=255} | moving lights=0 relights=0 engineHits=0 | block lights=192 sections=455 quads=109371 pending=0 lastSection=623us | movingLayers=0 quads=0 lastMoving=15921us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=9,4,18 volFailed=0 unloadedSkips=377 geos=160/128 geoReady=100 gpuSections=100 gpuQuads=47854 movingLights=0 movingSections=0 | entityShadows=1/30q | glow quads=7 packTex=1 autoTex=4 | shadow quads=309691 pending=0 lastColumnBuild=3425us | cpu: tick avg 2.719ms worst 21.73ms, frame avg 22.213ms
+[20:36:30] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 3d_gaps_bars_ladder_fence_lumen_on at BlockPos{x=272, y=79, z=255} | moving lights=0 relights=0 engineHits=0 | block lights=193 sections=455 quads=22820 pending=0 lastSection=186us | movingLayers=0 quads=0 lastMoving=15921us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=17,4,15 volFailed=0 unloadedSkips=377 geos=212/133 geoReady=115 gpuSections=115 gpuQuads=46524 movingLights=0 movingSections=0 | entityShadows=1/30q | glow quads=7 packTex=1 autoTex=4 | shadow quads=308919 pending=0 lastColumnBuild=7982us | cpu: tick avg 2.259ms worst 20.08ms, frame avg 31.363ms
+[20:36:38] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 3d_gaps_bars_ladder_fence_vanilla at BlockPos{x=272, y=79, z=255} | moving lights=0 relights=0 engineHits=0 | block lights=193 sections=455 quads=22820 pending=0 lastSection=186us | movingLayers=0 quads=0 lastMoving=15921us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=17,4,15 volFailed=0 unloadedSkips=377 geos=212/133 geoReady=115 gpuSections=115 gpuQuads=46524 movingLights=0 movingSections=0 | entityShadows=1/30q | glow quads=7 packTex=1 autoTex=4 | shadow quads=308919 pending=0 lastColumnBuild=7982us | cpu: tick avg 2.259ms worst 20.08ms, frame avg 31.363ms
+[20:36:53] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 3e_stained_glass_lumen_on at BlockPos{x=272, y=81, z=294} | moving lights=0 relights=0 engineHits=0 | block lights=126 sections=347 quads=24614 pending=0 lastSection=29us | movingLayers=0 quads=0 lastMoving=15921us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=17,5,18 volFailed=0 unloadedSkips=377 geos=115/50 geoReady=40 gpuSections=40 gpuQuads=16011 movingLights=0 movingSections=0 | entityShadows=1/42q | glow quads=2 packTex=1 autoTex=4 | shadow quads=326582 pending=0 lastColumnBuild=3592us | cpu: tick avg 3.592ms worst 13.29ms, frame avg 24.776ms
+[20:37:01] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 3e_stained_glass_vanilla at BlockPos{x=272, y=81, z=294} | moving lights=0 relights=0 engineHits=0 | block lights=126 sections=347 quads=24614 pending=0 lastSection=29us | movingLayers=0 quads=0 lastMoving=15921us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=17,5,18 volFailed=0 unloadedSkips=377 geos=115/50 geoReady=40 gpuSections=40 gpuQuads=16011 movingLights=0 movingSections=0 | entityShadows=1/42q | glow quads=2 packTex=1 autoTex=4 | shadow quads=326582 pending=0 lastColumnBuild=3592us | cpu: tick avg 3.592ms worst 13.29ms, frame avg 24.776ms
+[20:37:17] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 3g_glowstone_wall_lumen_on at BlockPos{x=232, y=73, z=197} | moving lights=0 relights=0 engineHits=0 | block lights=213 sections=551 quads=43112 pending=3 lastSection=4099us | movingLayers=0 quads=0 lastMoving=15921us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=14,4,12 volFailed=0 unloadedSkips=377 geos=210/139 geoReady=121 gpuSections=121 gpuQuads=51146 movingLights=0 movingSections=0 | entityShadows=1/46q | glow quads=24 packTex=1 autoTex=4 | shadow quads=361360 pending=6 lastColumnBuild=3869us | cpu: tick avg 2.383ms worst 18.43ms, frame avg 34.846ms
+[20:37:25] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 3g_glowstone_wall_vanilla at BlockPos{x=232, y=73, z=197} | moving lights=0 relights=0 engineHits=0 | block lights=213 sections=551 quads=43112 pending=3 lastSection=4099us | movingLayers=0 quads=0 lastMoving=15921us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=14,4,12 volFailed=0 unloadedSkips=377 geos=210/139 geoReady=121 gpuSections=121 gpuQuads=51146 movingLights=0 movingSections=0 | entityShadows=1/46q | glow quads=24 packTex=1 autoTex=4 | shadow quads=361360 pending=6 lastColumnBuild=3869us | cpu: tick avg 2.383ms worst 18.43ms, frame avg 34.846ms
+[20:37:40] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 3h_tallgrass_torch_lumen_on at BlockPos{x=152, y=76, z=212} | moving lights=0 relights=0 engineHits=0 | block lights=196 sections=456 quads=29723 pending=0 lastSection=16us | movingLayers=0 quads=0 lastMoving=15921us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=9,4,13 volFailed=0 unloadedSkips=423 geos=175/110 geoReady=89 gpuSections=89 gpuQuads=33386 movingLights=0 movingSections=0 | entityShadows=1/44q | glow quads=19 packTex=1 autoTex=4 | shadow quads=346029 pending=0 lastColumnBuild=5378us | cpu: tick avg 2.239ms worst 23.75ms, frame avg 31.248ms
+[20:37:48] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 3h_tallgrass_torch_vanilla at BlockPos{x=152, y=76, z=212} | moving lights=0 relights=0 engineHits=0 | block lights=196 sections=456 quads=29723 pending=0 lastSection=16us | movingLayers=0 quads=0 lastMoving=15921us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=9,4,13 volFailed=0 unloadedSkips=423 geos=175/110 geoReady=89 gpuSections=89 gpuQuads=33386 movingLights=0 movingSections=0 | entityShadows=1/44q | glow quads=19 packTex=1 autoTex=4 | shadow quads=346029 pending=0 lastColumnBuild=5378us | cpu: tick avg 2.239ms worst 23.75ms, frame avg 31.248ms
+[20:37:49] [Server thread/INFO] [net.minecraft.server.integrated.IntegratedServer]: Changing view distance to 12, from 6
+[20:37:57] [Server thread/WARN] [net.minecraft.server.MinecraftServer]: Can't keep up! Did the system time change, or is the server overloaded? Running 2745ms behind, skipping 54 tick(s)
+[20:38:27] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 3i_far_lights_walking_cpu at BlockPos{x=11, y=83, z=46} | moving lights=0 relights=0 engineHits=0 | block lights=2048 sections=1594 quads=355644 pending=0 lastSection=15188us | movingLayers=1 quads=1752 lastMoving=64153us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=9,4,13 volFailed=0 unloadedSkips=423 geos=175/110 geoReady=89 gpuSections=89 gpuQuads=33386 movingLights=0 movingSections=0 | entityShadows=1/38q | glow quads=39 packTex=1 autoTex=4 | shadow quads=222686 pending=6 lastColumnBuild=3807us | cpu: tick avg 4.108ms worst 82.53ms, frame avg 56.881ms
+[20:38:27] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST:   tower 27m: BlockPos{x=32, y=66, z=40} light=14 scanned=true listed=true#0/2048 gpu[eligible=false volReady=false geo=none chunkReady=true] cpu=(list=237 quads=3445 dirty=false queued=false gpuSkip=false)
+[20:38:27] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST:   tower 48m: BlockPos{x=56, y=66, z=52} light=14 scanned=true listed=true#1/2048 gpu[eligible=false volReady=false geo=none chunkReady=true] cpu=(list=222 quads=2990 dirty=false queued=false gpuSkip=false)
+[20:38:27] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST:   tower 71m: BlockPos{x=80, y=67, z=40} light=14 scanned=true listed=true#7/2048 gpu[eligible=false volReady=false geo=none chunkReady=true] cpu=(list=159 quads=4313 dirty=false queued=false gpuSkip=false)
+[20:38:27] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST:   tower 93m: BlockPos{x=104, y=72, z=52} light=14 scanned=true listed=true#143/2048 gpu[eligible=false volReady=false geo=none chunkReady=true] cpu=(list=178 quads=4723 dirty=false queued=false gpuSkip=false)
+[20:38:27] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST:   tower 117m: BlockPos{x=128, y=73, z=40} light=14 scanned=true listed=true#404/2048 gpu[eligible=false volReady=false geo=none chunkReady=true] cpu=(list=219 quads=9414 dirty=false queued=false gpuSkip=false)
+[20:38:27] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST:   tower 142m: BlockPos{x=152, y=64, z=52} light=14 scanned=true listed=true#872/2048 gpu[eligible=false volReady=false geo=none chunkReady=true] cpu=(list=265 quads=1246 dirty=false queued=false gpuSkip=false)
+[20:38:39] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 3i_far_lights_walking_lumen_on at BlockPos{x=11, y=83, z=46} | moving lights=0 relights=0 engineHits=0 | block lights=2048 sections=1594 quads=316868 pending=5 lastSection=89039us | movingLayers=1 quads=0 lastMoving=64153us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=0,5,2 volFailed=0 unloadedSkips=423 geos=134/97 geoReady=73 gpuSections=73 gpuQuads=26973 movingLights=1 movingSections=13 | entityShadows=1/37q | glow quads=39 packTex=1 autoTex=4 | shadow quads=222686 pending=6 lastColumnBuild=4336us | cpu: tick avg 3.142ms worst 12.32ms, frame avg 63.696ms
+[20:38:39] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST:   tower 27m: BlockPos{x=32, y=66, z=40} light=14 scanned=true listed=true#0/2048 gpu[eligible=true volReady=true geo(list=132 quads=439 dirty=false queued=false nStatic=2) chunkReady=true] cpu=(list=-1 quads=0 dirty=false queued=false gpuSkip=true)
+[20:38:39] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST:   tower 48m: BlockPos{x=56, y=66, z=52} light=14 scanned=true listed=true#1/2048 gpu[eligible=true volReady=true geo(list=224 quads=422 dirty=false queued=false nStatic=1) chunkReady=true] cpu=(list=-1 quads=0 dirty=false queued=false gpuSkip=true)
+[20:38:39] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST:   tower 71m: BlockPos{x=80, y=67, z=40} light=14 scanned=true listed=true#7/2048 gpu[eligible=false volReady=false geo=none chunkReady=true] cpu=(list=159 quads=4304 dirty=false queued=false gpuSkip=false)
+[20:38:39] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST:   tower 93m: BlockPos{x=104, y=72, z=52} light=14 scanned=true listed=true#143/2048 gpu[eligible=false volReady=false geo=none chunkReady=true] cpu=(list=178 quads=4704 dirty=false queued=false gpuSkip=false)
+[20:38:39] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST:   tower 117m: BlockPos{x=128, y=73, z=40} light=14 scanned=true listed=true#404/2048 gpu[eligible=false volReady=false geo=none chunkReady=true] cpu=(list=219 quads=9414 dirty=false queued=false gpuSkip=false)
+[20:38:39] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST:   tower 142m: BlockPos{x=152, y=64, z=52} light=14 scanned=true listed=true#872/2048 gpu[eligible=false volReady=false geo=none chunkReady=true] cpu=(list=265 quads=1246 dirty=false queued=false gpuSkip=false)
+[20:38:47] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 3i_far_lights_walking_vanilla at BlockPos{x=11, y=83, z=46} | moving lights=0 relights=0 engineHits=0 | block lights=2048 sections=1594 quads=316868 pending=5 lastSection=89039us | movingLayers=1 quads=0 lastMoving=64153us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=0,5,2 volFailed=0 unloadedSkips=423 geos=134/97 geoReady=73 gpuSections=73 gpuQuads=26973 movingLights=1 movingSections=13 | entityShadows=1/37q | glow quads=39 packTex=1 autoTex=4 | shadow quads=222686 pending=6 lastColumnBuild=4336us | cpu: tick avg 3.142ms worst 12.32ms, frame avg 63.696ms
+[20:38:47] [Server thread/INFO] [net.minecraft.server.integrated.IntegratedServer]: Changing view distance to 6, from 12
+[20:39:01] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 3f_entity_torch_night_lumen_on at BlockPos{x=232, y=75, z=334} | moving lights=0 relights=0 engineHits=0 | block lights=250 sections=481 quads=53764 pending=0 lastSection=433us | movingLayers=1 quads=0 lastMoving=64153us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=14,4,20 volFailed=0 unloadedSkips=3327 geos=204/139 geoReady=116 gpuSections=116 gpuQuads=47836 movingLights=0 movingSections=0 | entityShadows=5/1313q | glow quads=27 packTex=1 autoTex=4 | shadow quads=188659 pending=0 lastColumnBuild=3067us | cpu: tick avg 3.539ms worst 26.33ms, frame avg 37.707ms
+[20:39:09] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 3f_entity_torch_night_vanilla at BlockPos{x=232, y=75, z=334} | moving lights=0 relights=0 engineHits=0 | block lights=250 sections=481 quads=53764 pending=0 lastSection=433us | movingLayers=1 quads=0 lastMoving=64153us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=14,4,20 volFailed=0 unloadedSkips=3327 geos=204/139 geoReady=116 gpuSections=116 gpuQuads=47836 movingLights=0 movingSections=0 | entityShadows=5/1313q | glow quads=27 packTex=1 autoTex=4 | shadow quads=188659 pending=0 lastColumnBuild=3067us | cpu: tick avg 3.539ms worst 26.33ms, frame avg 37.707ms
+[20:39:22] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 5b_entity_shadows_day_lumen_on at BlockPos{x=232, y=75, z=334} | moving lights=0 relights=0 engineHits=0 | block lights=245 sections=454 quads=45701 pending=5 lastSection=66661us | movingLayers=1 quads=0 lastMoving=64153us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=14,4,20 volFailed=0 unloadedSkips=3327 geos=237/165 geoReady=114 gpuSections=114 gpuQuads=48304 movingLights=1 movingSections=11 | entityShadows=5/281q | glow quads=27 packTex=1 autoTex=4 | shadow quads=375202 pending=6 lastColumnBuild=16303us | cpu: tick avg 5.110ms worst 21.14ms, frame avg 46.497ms
+[20:39:30] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 5b_entity_shadows_day_vanilla at BlockPos{x=232, y=75, z=334} | moving lights=0 relights=0 engineHits=0 | block lights=245 sections=454 quads=45701 pending=5 lastSection=66661us | movingLayers=1 quads=0 lastMoving=64153us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=14,4,20 volFailed=0 unloadedSkips=3327 geos=237/165 geoReady=114 gpuSections=114 gpuQuads=48304 movingLights=1 movingSections=11 | entityShadows=5/281q | glow quads=27 packTex=1 autoTex=4 | shadow quads=375202 pending=6 lastColumnBuild=16303us | cpu: tick avg 5.110ms worst 21.14ms, frame avg 46.497ms
+[20:39:43] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 4_emissive_ores_lumen_on at BlockPos{x=192, y=21, z=242} | moving lights=0 relights=0 engineHits=0 | block lights=776 sections=737 quads=116799 pending=5 lastSection=10244us | movingLayers=1 quads=0 lastMoving=64153us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=12,1,15 volFailed=0 unloadedSkips=3327 geos=249/164 geoReady=149 gpuSections=149 gpuQuads=45054 movingLights=0 movingSections=0 | entityShadows=1/140q | glow quads=95 packTex=2 autoTex=6 | shadow quads=282050 pending=0 lastColumnBuild=5074us | cpu: tick avg 4.250ms worst 25.98ms, frame avg 41.072ms
+[20:39:51] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 4_emissive_ores_vanilla at BlockPos{x=192, y=21, z=242} | moving lights=0 relights=0 engineHits=0 | block lights=776 sections=737 quads=116799 pending=5 lastSection=10244us | movingLayers=1 quads=0 lastMoving=64153us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=12,1,15 volFailed=0 unloadedSkips=3327 geos=249/164 geoReady=149 gpuSections=149 gpuQuads=45054 movingLights=0 movingSections=0 | entityShadows=1/140q | glow quads=95 packTex=2 autoTex=6 | shadow quads=282050 pending=0 lastColumnBuild=5074us | cpu: tick avg 4.250ms worst 25.98ms, frame avg 41.072ms
+[20:40:07] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 5_shadows_morning_lumen_on at BlockPos{x=193, y=72, z=268} | moving lights=0 relights=0 engineHits=0 | block lights=177 sections=481 quads=24707 pending=5 lastSection=75317us | movingLayers=1 quads=0 lastMoving=64153us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=12,4,16 volFailed=0 unloadedSkips=3327 geos=234/151 geoReady=122 gpuSections=122 gpuQuads=52131 movingLights=0 movingSections=0 | entityShadows=1/87q | glow quads=41 packTex=2 autoTex=6 | shadow quads=396154 pending=6 lastColumnBuild=13095us | cpu: tick avg 3.847ms worst 23.50ms, frame avg 56.145ms
+[20:40:15] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 5_shadows_morning_vanilla at BlockPos{x=193, y=72, z=268} | moving lights=0 relights=0 engineHits=0 | block lights=177 sections=481 quads=24707 pending=5 lastSection=75317us | movingLayers=1 quads=0 lastMoving=64153us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=12,4,16 volFailed=0 unloadedSkips=3327 geos=234/151 geoReady=122 gpuSections=122 gpuQuads=52131 movingLights=0 movingSections=0 | entityShadows=1/87q | glow quads=41 packTex=2 autoTex=6 | shadow quads=396154 pending=6 lastColumnBuild=13095us | cpu: tick avg 3.847ms worst 23.50ms, frame avg 56.145ms
+[20:40:32] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 6_shadows_afternoon_lumen_on at BlockPos{x=193, y=72, z=268} | moving lights=0 relights=0 engineHits=0 | block lights=174 sections=481 quads=24412 pending=0 lastSection=4199us | movingLayers=1 quads=0 lastMoving=64153us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=12,4,16 volFailed=0 unloadedSkips=3327 geos=234/151 geoReady=122 gpuSections=122 gpuQuads=52085 movingLights=0 movingSections=0 | entityShadows=1/93q | glow quads=41 packTex=2 autoTex=6 | shadow quads=351921 pending=0 lastColumnBuild=10986us | cpu: tick avg 1.942ms worst 11.86ms, frame avg 48.824ms
+[20:40:40] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 6_shadows_afternoon_vanilla at BlockPos{x=193, y=72, z=268} | moving lights=0 relights=0 engineHits=0 | block lights=174 sections=481 quads=24412 pending=0 lastSection=4199us | movingLayers=1 quads=0 lastMoving=64153us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=12,4,16 volFailed=0 unloadedSkips=3327 geos=234/151 geoReady=122 gpuSections=122 gpuQuads=52085 movingLights=0 movingSections=0 | entityShadows=1/93q | glow quads=41 packTex=2 autoTex=6 | shadow quads=351921 pending=0 lastColumnBuild=10986us | cpu: tick avg 1.942ms worst 11.86ms, frame avg 48.824ms
+[20:40:56] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 6b_sunset_sky_color_lumen_on at BlockPos{x=193, y=72, z=268} | moving lights=0 relights=0 engineHits=0 | block lights=174 sections=481 quads=31670 pending=0 lastSection=226us | movingLayers=1 quads=0 lastMoving=64153us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=12,4,16 volFailed=0 unloadedSkips=3327 geos=234/151 geoReady=122 gpuSections=122 gpuQuads=52051 movingLights=0 movingSections=0 | entityShadows=1/218q | glow quads=41 packTex=2 autoTex=6 | shadow quads=424119 pending=6 lastColumnBuild=15623us | cpu: tick avg 2.749ms worst 15.79ms, frame avg 55.352ms
+[20:41:04] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 6b_sunset_sky_color_vanilla at BlockPos{x=193, y=72, z=268} | moving lights=0 relights=0 engineHits=0 | block lights=174 sections=481 quads=31670 pending=0 lastSection=226us | movingLayers=1 quads=0 lastMoving=64153us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=12,4,16 volFailed=0 unloadedSkips=3327 geos=234/151 geoReady=122 gpuSections=122 gpuQuads=52051 movingLights=0 movingSections=0 | entityShadows=1/218q | glow quads=41 packTex=2 autoTex=6 | shadow quads=424119 pending=6 lastColumnBuild=15623us | cpu: tick avg 2.749ms worst 15.79ms, frame avg 55.352ms
+[20:41:21] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 6c_moon_shadows_lumen_on at BlockPos{x=193, y=72, z=268} | moving lights=0 relights=0 engineHits=0 | block lights=174 sections=481 quads=32391 pending=0 lastSection=393us | movingLayers=1 quads=0 lastMoving=64153us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=12,4,16 volFailed=0 unloadedSkips=3327 geos=234/151 geoReady=122 gpuSections=122 gpuQuads=52035 movingLights=0 movingSections=0 | entityShadows=1/45q | glow quads=41 packTex=2 autoTex=6 | shadow quads=279704 pending=1 lastColumnBuild=3933us | cpu: tick avg 1.705ms worst 19.43ms, frame avg 40.952ms
+[20:41:29] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 6c_moon_shadows_vanilla at BlockPos{x=193, y=72, z=268} | moving lights=0 relights=0 engineHits=0 | block lights=174 sections=481 quads=32391 pending=0 lastSection=393us | movingLayers=1 quads=0 lastMoving=64153us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=12,4,16 volFailed=0 unloadedSkips=3327 geos=234/151 geoReady=122 gpuSections=122 gpuQuads=52035 movingLights=0 movingSections=0 | entityShadows=1/45q | glow quads=41 packTex=2 autoTex=6 | shadow quads=279704 pending=1 lastColumnBuild=3933us | cpu: tick avg 1.705ms worst 19.43ms, frame avg 40.952ms
+[20:41:29] [Server thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: Forest at BlockPos{x=1788, y=75, z=3232}
+[20:41:50] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 7_forest_afternoon_lumen_on at BlockPos{x=1788, y=81, z=3232} | moving lights=0 relights=0 engineHits=0 | block lights=44 sections=147 quads=763 pending=0 lastSection=678us | movingLayers=1 quads=0 lastMoving=64153us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=111,5,202 volFailed=0 unloadedSkips=14104 geos=99/90 geoReady=79 gpuSections=79 gpuQuads=47272 movingLights=0 movingSections=0 | entityShadows=9/644q | glow quads=34 packTex=2 autoTex=6 | shadow quads=526249 pending=0 lastColumnBuild=18563us | cpu: tick avg 5.845ms worst 45.81ms, frame avg 31.813ms
+[20:41:58] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: screenshot 7_forest_afternoon_vanilla at BlockPos{x=1788, y=81, z=3232} | moving lights=0 relights=0 engineHits=0 | block lights=44 sections=147 quads=763 pending=0 lastSection=678us | movingLayers=1 quads=0 lastMoving=64153us | gpu=on (llvmpipe (LLVM 21.1.8, 256 bits)) vol=968/968 center=111,5,202 volFailed=0 unloadedSkips=14104 geos=99/90 geoReady=79 gpuSections=79 gpuQuads=47272 movingLights=0 movingSections=0 | entityShadows=9/644q | glow quads=34 packTex=2 autoTex=6 | shadow quads=526249 pending=0 lastColumnBuild=18563us | cpu: tick avg 5.845ms worst 45.81ms, frame avg 31.813ms
+[20:41:58] [Client thread/INFO] [Lumen-AutoTest]: LUMEN-AUTOTEST: done; GL renderer=llvmpipe (LLVM 21.1.8, 256 bits)
+[20:41:58] [Client thread/INFO] [net.minecraft.client.Minecraft]: Stopping!
+[20:41:58] [Server thread/INFO] [net.minecraft.server.MinecraftServer]: Stopping server
+[20:41:58] [Server thread/INFO] [net.minecraft.server.MinecraftServer]: Saving players
+[20:41:58] [Server thread/INFO] [net.minecraft.server.MinecraftServer]: Saving worlds
+[20:41:58] [Server thread/INFO] [net.minecraft.server.MinecraftServer]: Saving chunks for level 'Lumen AutoTest'/overworld
+[20:41:59] [Server thread/INFO] [FML]: Unloading dimension 0
+[20:41:59] [Server thread/INFO] [FML]: Applying holder lookups
+[20:41:59] [Server thread/INFO] [FML]: Holder lookups applied
+[20:41:59] [Client thread/INFO] [net.minecraft.client.audio.SoundManager]: SoundSystem shutting down...
+[20:41:59] [Client thread/WARN] [net.minecraft.client.audio.SoundManager]: Author: Paul Lamb, www.paulscode.com
