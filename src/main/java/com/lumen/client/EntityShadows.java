@@ -172,7 +172,7 @@ final class EntityShadows {
         float skyB = table[w.getLightFor(EnumSkyBlock.SKY, m)] * sunB;
         int vanillaBlock = w.getLightFor(EnumSkyBlock.BLOCK, m);
         int[] n = {0};
-        AdaptiveQuad.subdivide(8, 0, 0.5f,
+        AdaptiveQuad.subdivide(16, 4, 0, 0.5f,
                 (u, v) -> {
                     double px = ox + t1.getXOffset() * u + t2.getXOffset() * v + nx * 0.02;
                     double py = oy + t1.getYOffset() * u + t2.getYOffset() * v + ny * 0.02;
@@ -216,7 +216,7 @@ final class EntityShadows {
             b1 = Math.max(b1, br);
         }
         // anything the lamp list doesn't know about (vanilla light from other sources) still lights it
-        float other = bright(vanillaBlock) * 0.6f;
+        float other = bright(vanillaBlock) * (1f - lampK);   // bounce light: the same floor block-light shadows have
         b0 = Math.max(b0, other); b1 = Math.max(b1, other);
         // sky + direct sun
         float s0 = skyB, s1 = skyB, sunShare = 0;
@@ -255,6 +255,7 @@ final class EntityShadows {
         double ox = (px - b.x) / b.rx, oy = (py - b.y) / b.ry, oz = (pz - b.z) / b.rx;
         double ex = dx / b.rx, ey = dy / b.ry, ez = dz / b.rx;
         double a = ex * ex + ey * ey + ez * ez, bb = 2 * (ox * ex + oy * ey + oz * ez), c = ox * ox + oy * oy + oz * oz - 1;
+        if (c < 0) return true;                          // the point is under/inside the body
         double disc = bb * bb - 4 * a * c;
         if (disc < 0) return false;
         double t = (-bb - Math.sqrt(disc)) / (2 * a);

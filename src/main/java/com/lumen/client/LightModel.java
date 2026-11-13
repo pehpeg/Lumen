@@ -137,9 +137,14 @@ final class LightModel {
             if (lev > 0 && dist > 1e-4) {
                 vx /= dist; vy /= dist; vz /= dist;
                 double ndl = n[0] * vx + n[1] * vy + n[2] * vz;
+                if (l.area) {
+                    // a glowing block lights everything its surface faces: judge the angle toward its center
+                    double cxv = l.x - sx, cyv = l.y - sy, czv = l.z - sz, cl = Math.sqrt(cxv * cxv + cyv * cyv + czv * czv);
+                    ndl = cl > 1e-4 ? (n[0] * cxv + n[1] * cyv + n[2] * czv) / cl : 1;
+                    if (dist < 0.05) ndl = 1;
+                }
                 if (twoSided) ndl = Math.abs(ndl);
                 tr[0] = tr[1] = tr[2] = 1f;
-                if (l.area && dist < 0.05) ndl = 1;   // touching the glowing block
                 if (ndl > 0) Occlusion.walkRgb(w, m, sx, sy, sz, vx, vy, vz, Math.max(0, dist - 0.05), l.block, false, tr);
                 else tr[0] = tr[1] = tr[2] = 0f;
                 float tm = Math.max(tr[0], Math.max(tr[1], tr[2]));

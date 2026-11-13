@@ -20,9 +20,16 @@ public final class AdaptiveQuad {
      * @param threshold split when that value varies by more than this inside a cell
      */
     public static void subdivide(int maxCells, int key, float threshold, Sampler sampler, Emitter emitter) {
+        subdivide(maxCells, 1, key, threshold, sampler, emitter);
+    }
+
+    /** minCells: always split down to at least this grid first (catches features thinner than a block). */
+    public static void subdivide(int maxCells, int minCells, int key, float threshold, Sampler sampler, Emitter emitter) {
         int n = Integer.highestOneBit(Math.max(1, Math.min(64, maxCells)));
+        int start = n / Math.max(1, Math.min(n, Integer.highestOneBit(minCells)));
         float[][] cache = new float[(n + 1) * (n + 1)][];
-        node(0, 0, n, n, key, threshold, sampler, emitter, cache);
+        for (int i = 0; i < n; i += start) for (int j = 0; j < n; j += start)
+            node(i, j, start, n, key, threshold, sampler, emitter, cache);
     }
 
     private static float[] get(int i, int j, int n, Sampler s, float[][] cache) {
