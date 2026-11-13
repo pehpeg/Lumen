@@ -78,6 +78,18 @@ public class LumenAutoTest {
         s = new Scene("3c_stairs_grass", 18000, 300);
         s.setup = () -> setupStairsGrass();
         scenes.add(s);
+        s = new Scene("3d_gaps_bars_ladder_fence", 18000, 300);
+        s.setup = () -> setupGaps();
+        scenes.add(s);
+        s = new Scene("3e_stained_glass", 18000, 300);
+        s.setup = () -> setupGlass();
+        scenes.add(s);
+        s = new Scene("3f_entity_torch_night", 18000, 260);
+        s.setup = () -> setupEntities(true);
+        scenes.add(s);
+        s = new Scene("5b_entity_shadows_day", 8000, 260);
+        s.setup = () -> setupEntities(false);
+        scenes.add(s);
         s = new Scene("4_emissive_ores", 18000, 240);
         s.setup = () -> setupOreRoom();
         scenes.add(s);
@@ -180,6 +192,7 @@ public class LumenAutoTest {
                 + " lastSection=" + BlockLightSections.statLastBuildMicros + "us"
                 + " | movingLayers=" + MovingLightOverlay.statSources + " quads=" + MovingLightOverlay.statQuads
                 + " lastMoving=" + MovingLightOverlay.statLastBuildMicros + "us"
+                + " | entityShadows=" + EntityShadows.statEntities + "/" + EntityShadows.statQuads + "q"
                 + " | glow quads=" + SectionScanner.statQuads + " packTex=" + EmissiveTextures.statPack + " autoTex=" + EmissiveTextures.statAuto
                 + " | shadow quads=" + SunShadows.statQuads + " pending=" + SunShadows.statPending
                 + " lastColumnBuild=" + SunShadows.statLastBuildMicros + "us"
@@ -306,6 +319,70 @@ public class LumenAutoTest {
     }
 
     /** Like the player's screenshot: torch in tall grass, a 2x2 group of stairs in front, a path behind. */
+    /** Flat stone floor with an open area above, returns the ground position. */
+    private static BlockPos flatFloor(WorldServer w, BlockPos at, int half) {
+        BlockPos g = dryGround(w, at);
+        int y = g.getY();
+        for (int x = -half; x <= half; x++) for (int z = -half; z <= half; z++) {
+            w.setBlockState(new BlockPos(g.getX() + x, y - 1, g.getZ() + z), Blocks.STONE.getDefaultState());
+            for (int h = 0; h < 10; h++) w.setBlockToAir(new BlockPos(g.getX() + x, y + h, g.getZ() + z));
+        }
+        return g;
+    }
+
+    /** A torch with iron bars, a ladder and a fence around it: light should pass the gaps. */
+    private void setupGaps() {
+        onServer(w -> {
+            BlockPos g = flatFloor(w, spawn.add(80, 0, 0), 10);
+            w.setBlockState(g, Blocks.TORCH.getDefaultState());
+            for (int x = -1; x <= 1; x++) for (int h = 0; h < 3; h++) w.setBlockState(g.add(x, h, 2), Blocks.IRON_BARS.getDefaultState());
+            for (int h = 0; h < 3; h++) w.setBlockState(g.add(-2, h, -1), Blocks.LADDER.getDefaultState()
+                    .withProperty(net.minecraft.block.BlockLadder.FACING, net.minecraft.util.EnumFacing.EAST));
+            w.setBlockState(g.add(-3, h0(), -1), Blocks.STONE.getDefaultState());
+            for (int z = -3; z <= -1; z++) w.setBlockState(g.add(2, 0, z), Blocks.OAK_FENCE.getDefaultState());
+            player(w).connection.setPlayerLocation(g.getX() + 0.5, g.getY() + 9, g.getZ() + 9.5, 180f, 50f);
+        });
+        yaw = 180f; pitch = 50f;
+    }
+
+    private static int h0() { return 0; }
+
+    /** A torch with stained glass on three sides and clear glass on the fourth. */
+    private void setupGlass() {
+        onServer(w -> {
+            BlockPos g = flatFloor(w, spawn.add(80, 0, 40), 10);
+            w.setBlockState(g, Blocks.TORCH.getDefaultState());
+            net.minecraft.block.state.IBlockState sg = Blocks.STAINED_GLASS.getDefaultState();
+            for (int i = -1; i <= 1; i++) for (int h = 0; h < 2; h++) {
+                w.setBlockState(g.add(i, h, 2), sg.withProperty(net.minecraft.block.BlockStainedGlass.COLOR, net.minecraft.item.EnumDyeColor.PURPLE));
+                w.setBlockState(g.add(-2, h, i), sg.withProperty(net.minecraft.block.BlockStainedGlass.COLOR, net.minecraft.item.EnumDyeColor.BLUE));
+                w.setBlockState(g.add(2, h, i), sg.withProperty(net.minecraft.block.BlockStainedGlass.COLOR, net.minecraft.item.EnumDyeColor.YELLOW));
+                w.setBlockState(g.add(i, h, -2), Blocks.GLASS.getDefaultState());
+            }
+            player(w).connection.setPlayerLocation(g.getX() + 0.5, g.getY() + 10, g.getZ() + 8.5, 180f, 55f);
+        });
+        yaw = 180f; pitch = 55f;
+    }
+
+    /** A few mobs standing still; at night with a torch next to them. */
+    private void setupEntities(boolean night) {
+        onServer(w -> {
+            BlockPos g = flatFloor(w, spawn.add(40, 0, 80), 10);
+            if (night) w.setBlockState(g.add(0, 0, -2), Blocks.TORCH.getDefaultState());
+            net.minecraft.entity.EntityLiving[] mobs = {new net.minecraft.entity.passive.EntityVillager(w),
+                    new net.minecraft.entity.passive.EntityPig(w), new net.minecraft.entity.monster.EntityZombie(w)};
+            double[][] at = {{-2, 0}, {1.5, 0.5}, {0, 2}};
+            for (int i = 0; i < mobs.length; i++) {
+                mobs[i].setNoAI(true);
+                mobs[i].enablePersistence();
+                mobs[i].setLocationAndAngles(g.getX() + 0.5 + at[i][0], g.getY(), g.getZ() + 0.5 + at[i][1], 0f, 0f);
+                w.spawnEntity(mobs[i]);
+            }
+            player(w).connection.setPlayerLocation(g.getX() + 0.5, g.getY() + 7, g.getZ() + 8.5, 180f, 40f);
+        });
+        yaw = 180f; pitch = 40f;
+    }
+
     private void setupStairsGrass() {
         BlockPos at = spawn.add(-40, 0, 40);
         onServer(w -> {
@@ -407,6 +484,7 @@ public class LumenAutoTest {
             p.inventory.setInventorySlotContents(p.inventory.currentItem, ItemStack.EMPTY);
             p.inventoryContainer.detectAndSendChanges();
             for (EntityItem it : w.getEntities(EntityItem.class, e -> true)) it.setDead();
+            for (net.minecraft.entity.EntityLiving it : w.getEntities(net.minecraft.entity.EntityLiving.class, e -> true)) it.setDead();
         });
     }
 

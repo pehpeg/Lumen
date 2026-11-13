@@ -41,6 +41,9 @@ final class ModelQuads {
     static void forEach(IBlockAccess w, BlockPos p, IBlockState st, Consumer<Q> out) {
         Material mat = st.getMaterial();
         if (mat == Material.AIR || mat.isLiquid() || st.getRenderType() != EnumBlockRenderType.MODEL) return;
+        // translucent blocks (stained glass, ice, slime) are drawn after Lumen's layers and blended
+        // over them: shading them would tint everything seen through them
+        try { if (st.getBlock().getRenderLayer() == net.minecraft.util.BlockRenderLayer.TRANSLUCENT) return; } catch (Throwable ignored) { }
         try {
             BlockRendererDispatcher brd = Minecraft.getMinecraft().getBlockRendererDispatcher();
             IBlockState actual = st.getActualState(w, p);

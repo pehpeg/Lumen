@@ -186,12 +186,17 @@ public class BlockLightSections {
                 new BlockPos(ox + 31, Math.min(255, oy + 31), oz + 31), 1);
         LightModel model = new LightModel(world, (float) LumenConfig.colored.strength,
                 LumenConfig.colored.shadows ? (float) LumenConfig.colored.shadowStrength : 0f);
-        int res = LumenConfig.colored.resolution, g = gen;
+        // pixel-sharp up close, coarser far away where it can't be seen (and costs geometry)
+        double sd = Math.sqrt(d2(s, mc.player.posX / 16, mc.player.posY / 16, mc.player.posZ / 16)) * 16;
+        int res = LumenConfig.colored.resolution;
+        if (sd > 96) res = Math.min(res, 2); else if (sd > 48) res = Math.min(res, 4); else if (sd > 24) res = Math.min(res, 8);
+        final int fres = res;
+        int g = gen;
         pending.incrementAndGet();
         worker.submit(() -> {
             try {
                 long t0 = System.nanoTime();
-                float[] v = build(cache, model, near, ox, oy, oz, res);
+                float[] v = build(cache, model, near, ox, oy, oz, fres);
                 statLastBuildMicros = (System.nanoTime() - t0) / 1000;
                 done.add(new Result(s, v, g));
             } catch (Throwable t) {

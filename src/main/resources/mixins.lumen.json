@@ -9,6 +9,8 @@
 	"server": [],
 	"client": [
 		"MixinBlock",
-		"MixinEntity"
+		"MixinEntity",
+		"MixinEntityRenderer",
+		"MixinRender"
 	]
 }

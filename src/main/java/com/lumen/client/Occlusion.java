@@ -3,25 +3,31 @@ package com.lumen.client;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 
 /**
- * Ray walks through the blocks for shadows (sun and block lights). Steps exactly block by block;
- * full blocks stop the light, partial solid blocks (slabs, stairs, fences, walls...) stop it only
- * where the ray actually crosses their shape, leaves let some through, plants cast nothing.
- * Safe to call from worker threads with a ChunkCache.
+ * Ray walks through the blocks for shadows. Steps exactly block by block, starting with the block
+ * the ray starts in. Full blocks stop the light; every other block is tested against its real model
+ * and texture pixels (Shapes): gaps let light through, stained glass tints it.
+ *
+ * Sun mode keeps two cheap rules for huge areas: leaves dim the light by half and plants cast
+ * nothing (pixel-exact foliage over a whole landscape would be far too much geometry).
  */
 public final class Occlusion {
     private Occlusion() {}
 
-    /**
-     * @return transmittance along the ray (1 = clear, 0 = blocked)
-     * @param skip a block to ignore (the light source itself), or null
-     */
+    /** Scalar transmittance (sun shadows): 1 = clear, 0 = blocked. */
     public static float walk(IBlockAccess access, BlockPos.MutableBlockPos m, double x, double y, double z,
                              double dx, double dy, double dz, double maxDist, BlockPos skip) {
+        float[] t = {1, 1, 1};
+        walkRgb(access, m, x, y, z, dx, dy, dz, maxDist, skip, true, t);
+        return Math.max(t[0], Math.max(t[1], t[2]));
+    }
+
+    /** Per-channel transmittance into t (start with {1,1,1}). sun = cheap foliage rules. */
+    public static void walkRgb(IBlockAccess access, BlockPos.MutableBlockPos m, double x, double y, double z,
+                               double dx, double dy, double dz, double maxDist, BlockPos skip, boolean sun, float[] t) {
         int bx = (int) Math.floor(x), by = (int) Math.floor(y), bz = (int) Math.floor(z);
         int stepX = dx > 0 ? 1 : -1, stepY = dy > 0 ? 1 : -1, stepZ = dz > 0 ? 1 : -1;
         double tdx = dx != 0 ? Math.abs(1 / dx) : Double.MAX_VALUE;
@@ -30,56 +36,41 @@ public final class Occlusion {
         double tx = dx != 0 ? (dx > 0 ? bx + 1 - x : x - bx) * tdx : Double.MAX_VALUE;
         double ty = dy != 0 ? (dy > 0 ? by + 1 - y : y - by) * tdy : Double.MAX_VALUE;
         double tz = dz != 0 ? (dz > 0 ? bz + 1 - z : z - bz) * tdz : Double.MAX_VALUE;
-        float t = 1f;
         double tIn = 0;
+        boolean first = true;
         while (true) {
-            double tOut;
-            int nx = bx, ny = by, nz = bz;
-            if (tx < ty && tx < tz) { nx += stepX; tOut = tx; tx += tdx; }
-            else if (ty < tz) { ny += stepY; tOut = ty; ty += tdy; }
-            else { nz += stepZ; tOut = tz; tz += tdz; }
-            // the block we just stepped into spans [tOut, next boundary]
-            bx = nx; by = ny; bz = nz;
+            double tOut = Math.min(tx, Math.min(ty, tz));
+            if (by >= 0 && by <= 255 && !(skip != null && bx == skip.getX() && by == skip.getY() && bz == skip.getZ())) {
+                IBlockState st = null;
+                try { st = access.getBlockState(m.setPos(bx, by, bz)); } catch (Throwable ignored) { }
+                if (st != null && !block(access, st, m, bx, by, bz, x, y, z, dx, dy, dz, tIn, Math.min(tOut, maxDist), sun, first, t)) {
+                    t[0] = t[1] = t[2] = 0f;
+                    return;
+                }
+            }
+            first = false;
+            if (tOut >= maxDist) return;
+            if (tx < ty && tx < tz) { bx += stepX; tx += tdx; }
+            else if (ty < tz) { by += stepY; ty += tdy; }
+            else { bz += stepZ; tz += tdz; }
             tIn = tOut;
-            if (tIn >= maxDist || by > 255 || by < 0) return t;
-            if (skip != null && bx == skip.getX() && by == skip.getY() && bz == skip.getZ()) continue;
-            IBlockState st;
-            try { st = access.getBlockState(m.setPos(bx, by, bz)); } catch (Throwable e) { continue; }
-            Material mat = st.getMaterial();
-            if (mat == Material.AIR || mat.isLiquid()) continue;
-            if (st.isOpaqueCube()) return 0f;
-            if (mat == Material.LEAVES) { t *= 0.5f; if (t < 0.06f) return 0f; continue; }
-            if (mat == Material.GLASS || mat == Material.ICE || mat == Material.PACKED_ICE) { t *= 0.85f; continue; }
-            if (!mat.blocksMovement()) continue;                                   // plants, torches, rails...
-            // partial solid block: test the ray against its shape
-            double tNext = Math.min(tx, Math.min(ty, tz));
-            if (hitsShape(access, st, bx, by, bz, x, y, z, dx, dy, dz, tIn, Math.min(tNext, maxDist))) return 0f;
+            if (by > 256 || by < -1) return;
         }
     }
 
-    private static boolean hitsShape(IBlockAccess access, IBlockState st, int bx, int by, int bz,
-                                     double x, double y, double z, double dx, double dy, double dz, double t0, double t1) {
-        AxisAlignedBB box;
-        try {
-            box = st.getBoundingBox(access, new BlockPos(bx, by, bz));
-        } catch (Throwable e) {
-            return true;
+    /** @return false if the light is blocked completely in this block. */
+    private static boolean block(IBlockAccess w, IBlockState st, BlockPos.MutableBlockPos m, int bx, int by, int bz,
+                                 double x, double y, double z, double dx, double dy, double dz, double t0, double t1,
+                                 boolean sun, boolean first, float[] t) {
+        Material mat = st.getMaterial();
+        if (mat == Material.AIR || mat.isLiquid()) return true;
+        if (st.isOpaqueCube()) return first;          // the ray can't start inside a full block; ignore if it does
+        if (sun) {
+            if (mat == Material.LEAVES) { t[0] *= 0.5f; t[1] *= 0.5f; t[2] *= 0.5f; return Math.max(t[0], Math.max(t[1], t[2])) > 0.06f; }
+            if (!mat.blocksMovement() && mat != Material.GLASS) return true;
         }
-        if (box == null) return false;
-        double lo = t0, hi = t1;
-        double[] o = {x, y, z}, d = {dx, dy, dz};
-        double[] mn = {bx + box.minX, by + box.minY, bz + box.minZ}, mx = {bx + box.maxX, by + box.maxY, bz + box.maxZ};
-        for (int a = 0; a < 3; a++) {
-            if (Math.abs(d[a]) < 1e-9) {
-                if (o[a] < mn[a] || o[a] > mx[a]) return false;
-            } else {
-                double ta = (mn[a] - o[a]) / d[a], tb = (mx[a] - o[a]) / d[a];
-                if (ta > tb) { double s = ta; ta = tb; tb = s; }
-                lo = Math.max(lo, ta); hi = Math.min(hi, tb);
-                if (lo > hi) return false;
-            }
-        }
-        return true;
+        if (!Shapes.transmit(w, st, m, bx, by, bz, x, y, z, dx, dy, dz, t0, t1, t)) return false;
+        return Math.max(t[0], Math.max(t[1], t[2])) > 0.03f;
     }
 
     // ---------------------------------------------------------------- face helpers

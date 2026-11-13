@@ -74,6 +74,7 @@ public class LumenClient {
         if (Minecraft.getMinecraft().getResourceManager() instanceof IReloadableResourceManager) {
             ((IReloadableResourceManager) Minecraft.getMinecraft().getResourceManager()).registerReloadListener(rm -> {
                 instance.textures.clear();
+                Shapes.clear();
                 instance.colors.clearTextureCache();
                 instance.scanner.clearCaches();
                 instance.blockLight.clear();
@@ -111,7 +112,7 @@ public class LumenClient {
     }
 
     private void tickFeatures() {
-        scanner.tick(8);
+        scanner.tick(24);
         if (LumenConfig.colored.enabled) {
             if (scanner.version != lastScanVersion) {
                 lastScanVersion = scanner.version;
@@ -158,12 +159,32 @@ public class LumenClient {
                 "Lumen: " + (active ? "\u00a7aON" : "\u00a7cOFF")), true);
     }
 
+    private final EntityShadows entityShadows = new EntityShadows();
+    private boolean drawnThisFrame;
+
+    /** Called right before the translucent pass (see MixinEntityRenderer). */
+    public static void renderBeforeTranslucent(float pt) {
+        if (instance == null) return;
+        instance.renderLayers(pt);
+        instance.drawnThisFrame = true;
+    }
+
+    /** Fallback when another mod reworked the world pass: draw at the end of the frame. */
     @SubscribeEvent
     public void onRenderLast(RenderWorldLastEvent e) {
+        if (!drawnThisFrame) renderLayers(e.getPartialTicks());
+        drawnThisFrame = false;
+    }
+
+    /** True when Lumen draws this entity's shadow itself (the vanilla blob is skipped). */
+    public static boolean replacesShadow(Entity e) {
+        return active && LumenConfig.shadows.entityShadows && e instanceof net.minecraft.entity.EntityLivingBase;
+    }
+
+    private void renderLayers(float pt) {
         if (!active || mc.world == null) return;
         Entity view = mc.getRenderViewEntity();
         if (view == null) return;
-        float pt = e.getPartialTicks();
         double cx = view.lastTickPosX + (view.posX - view.lastTickPosX) * pt;
         double cy = view.lastTickPosY + (view.posY - view.lastTickPosY) * pt;
         double cz = view.lastTickPosZ + (view.posZ - view.lastTickPosZ) * pt;
@@ -174,6 +195,7 @@ public class LumenClient {
             // 1) light and shadow layers (2x modulate)
             GlSafe.modulate();
             if (LumenConfig.shadows.enabled) shadows.render(cx, cy, cz);
+            if (LumenConfig.shadows.entityShadows) entityShadows.render(pt, cx, cy, cz, blockLight.lights(), dynamicLights.moving());
             if (LumenConfig.colored.enabled) {
                 int atlas = mc.getTextureMapBlocks().getGlTextureId();
                 GlSafe.modulateCutout(atlas);

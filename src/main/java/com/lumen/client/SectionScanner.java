@@ -87,8 +87,8 @@ public class SectionScanner {
         World w = mc.world;
         if (w != world) { world = w; clearCaches(); lastCx = Integer.MIN_VALUE; }
         if (w == null || mc.player == null) return;
-        int radius = Math.max(LumenConfig.emissive.radius, LumenConfig.colored.radius);
-        int r = (radius + 15) >> 4, ry = Math.max(1, (radius / 2 + 15) >> 4);
+        int radius = Math.max(LumenConfig.emissive.radius, lightRadius());
+        int r = (radius + 15) >> 4, ry = Math.max(2, Math.min(8, (radius / 2 + 15) >> 4));
         int pcx = mc.player.chunkCoordX, pcy = (int) mc.player.posY >> 4, pcz = mc.player.chunkCoordZ;
 
         if (pcx != lastCx || pcy != lastCy || pcz != lastCz) {   // moved to another section: new scan order
@@ -119,10 +119,25 @@ public class SectionScanner {
         statSections = sections.size();
     }
 
+    /** How far lights are picked up: the render distance unless the config sets a limit. */
+    static int lightRadius() {
+        int rd = Minecraft.getMinecraft().gameSettings.renderDistanceChunks * 16;
+        int cfg = LumenConfig.colored.radius;
+        return cfg <= 0 ? rd : Math.min(rd, cfg);
+    }
+
     private static long dist(long k, int cx, int cy, int cz) {
         int x = (int) (k >> 40), y = (int) ((k >> 32) & 0xFF), z = (int) k;
         long dx = x - cx, dy = y - cy, dz = z - cz;
         return dx * dx + dy * dy * 4 + dz * dz;
+    }
+
+    /** Cheap pre-check: a section with a light source of level 5+ has a block light value of 5+ somewhere. */
+    private static boolean hasLight(ExtendedBlockStorage storage) {
+        net.minecraft.world.chunk.NibbleArray nib = storage.getBlockLight();
+        if (nib == null) return true;
+        for (byte b : nib.getData()) if ((b & 0xF) >= 5 || ((b >> 4) & 0xF) >= 5) return true;
+        return false;
     }
 
     static long key(int cx, int cy, int cz) { return ((long) cx << 40) | ((long) (cy & 0xFF) << 32) | (cz & 0xFFFFFFFFL); }
@@ -140,7 +155,14 @@ public class SectionScanner {
         Section s = new Section();
         BlockPos.MutableBlockPos p = new BlockPos.MutableBlockPos();
         BlockPos.MutableBlockPos n = new BlockPos.MutableBlockPos();
-        boolean wantGlow = LumenConfig.emissive.enabled, wantColor = LumenConfig.colored.enabled;
+        double ex = mc.player.posX - ((cx << 4) + 8), ey = mc.player.posY - ((cy << 4) + 8), ez = mc.player.posZ - ((cz << 4) + 8);
+        boolean wantGlow = LumenConfig.emissive.enabled
+                && ex * ex + ey * ey + ez * ez <= (LumenConfig.emissive.radius + 14) * (LumenConfig.emissive.radius + 14);
+        boolean wantColor = LumenConfig.colored.enabled && hasLight(storage);
+        if (!wantGlow && !wantColor) {
+            if (old != null) { sections.remove(k); { changed = true; version++; } }
+            return;
+        }
         for (int y = 0; y < 16; y++) for (int z = 0; z < 16; z++) for (int x = 0; x < 16; x++) {
             IBlockState state = storage.get(x, y, z);
             if (state.getMaterial() == Material.AIR) continue;

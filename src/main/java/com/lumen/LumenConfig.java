@@ -79,8 +79,8 @@ public class LumenConfig {
         @Config.RangeInt(min = 1, max = 16)
         public int resolution = 16;
         @Config.Comment("Max number of lights that get color and shadows (nearest first)")
-        @Config.RangeInt(min = 4, max = 128)
-        public int maxLights = 48;
+        @Config.RangeInt(min = 4, max = 2048)
+        public int maxLights = 512;
         @Config.Comment("Colors as 'modid:block=RRGGBB' (overrides the automatic color)")
         public String[] colors = {
                 "minecraft:torch=FF8A2A", "minecraft:fire=FF7020", "minecraft:lava=FF5A10", "minecraft:flowing_lava=FF5A10",
@@ -92,12 +92,14 @@ public class LumenConfig {
         @Config.Comment("How saturated light colors are (1 = as listed / as the texture, higher = more vivid)")
         @Config.RangeDouble(min = 0.5, max = 3)
         public double vibrance = 1.6;
-        @Config.Comment("Scan radius (blocks) for colored light sources")
-        @Config.RangeInt(min = 8, max = 64)
-        public int radius = 32;
+        @Config.Comment("How far (blocks) lights get color and shadows. 0 = your render distance")
+        @Config.RangeInt(min = 0, max = 512)
+        public int radius = 0;
     }
 
     public static class Shadows {
+        @Config.Comment("Players and mobs cast real shadows from the sun and nearby lights (replaces the round blob)")
+        public boolean entityShadows = true;
         @Config.Comment("Sun shadows: trees, buildings and cliffs cast shadows, sides facing away from the sun are shaded.\n"
                 + "Traced through the blocks off the main thread; works with any renderer.")
         public boolean enabled = true;
