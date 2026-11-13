@@ -199,6 +199,24 @@ public final class GpuLighting {
         }
     }
 
+    /** A range of blocks changed (chunk data packets): those sections are re-read and their faces rebuilt. */
+    public void markRange(int x1, int y1, int z1, int x2, int y2, int z2) {
+        if (vol == null) return;
+        int sx0 = Math.min(x1, x2) - 1 >> 4, sx1 = Math.max(x1, x2) + 1 >> 4, sy0 = Math.max(0, Math.min(y1, y2) - 1) >> 4,
+                sy1 = Math.min(255, Math.max(y1, y2) + 1) >> 4, sz0 = Math.min(z1, z2) - 1 >> 4, sz1 = Math.max(z1, z2) + 1 >> 4;
+        if ((long) (sx1 - sx0 + 1) * (sy1 - sy0 + 1) * (sz1 - sz0 + 1) > 4096) return;
+        for (int sx = sx0; sx <= sx1; sx++) for (int sy = sy0; sy <= sy1; sy++) for (int sz = sz0; sz <= sz1; sz++) {
+            vol.markSection(sx, sy, sz);
+            Geo g = geos.get(VoxelVolume.key(sx, sy, sz));
+            if (g != null) g.dirty = true;
+        }
+    }
+
+    /** Vanilla light changed here (another light, a relight): refresh the stored light soon. */
+    public void markLight(BlockPos p) {
+        if (vol != null) vol.markLight(p);
+    }
+
     /** CPU path: this section is drawn by the GPU path (or will be as soon as it's ready). */
     public boolean eligible(int sx, int sy, int sz) {
         return ok && vol != null && LumenConfig.colored.gpu && vol.eligible(sx, sy, sz);

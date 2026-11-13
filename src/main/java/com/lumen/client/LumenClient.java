@@ -146,8 +146,11 @@ public class LumenClient {
             gpu.markDirty(pos);
             shadows.markDirty(pos);
         }
-        @Override public void notifyLightSet(BlockPos pos) {}
-        @Override public void markBlockRangeForRenderUpdate(int x1, int y1, int z1, int x2, int y2, int z2) {}
+        @Override public void notifyLightSet(BlockPos pos) { gpu.markLight(pos); }
+        /** Whole chunks arriving at once (many blocks changed, chunk loaded): refresh the GPU's copy. */
+        @Override public void markBlockRangeForRenderUpdate(int x1, int y1, int z1, int x2, int y2, int z2) {
+            gpu.markRange(x1, y1, z1, x2, y2, z2);
+        }
         @Override public void playSoundToAllNearExcept(@Nullable EntityPlayer player, SoundEvent sound, SoundCategory category,
                                                        double x, double y, double z, float volume, float pitch) {}
         @Override public void playRecord(SoundEvent sound, BlockPos pos) {}

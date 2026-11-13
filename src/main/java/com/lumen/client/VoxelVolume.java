@@ -103,6 +103,10 @@ final class VoxelVolume {
         }
     }
 
+    void markSection(int sx, int sy, int sz) { dirty.add(key(sx, sy, sz)); }
+
+    void markLight(BlockPos p) { lazy.add(key(p.getX() >> 4, p.getY() >> 4, p.getZ() >> 4)); }
+
     void tick(World w, int psx, int psy, int psz) {
         csx = psx; csy = psy; csz = psz;
         List<int[]> want = new ArrayList<>();
