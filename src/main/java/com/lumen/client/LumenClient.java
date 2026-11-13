@@ -70,8 +70,8 @@ public class LumenClient {
             LightModel.Light l = ls.get(i);
             if (l.block != null && Math.abs(l.block.getX() - p.getX()) <= 1 && Math.abs(l.block.getY() - p.getY()) <= 1 && Math.abs(l.block.getZ() - p.getZ()) <= 1) { listed = true; index = i; break; }
         }
-        BlockPos ground = p.down(4);
-        return p + " light=" + (mcWorld() != null ? mcWorld().getLightFromNeighbors(ground.up()) : -1) + " scanned=" + scanned + " listed=" + listed + "#" + index
+        BlockPos ground = p.down(3);
+        return p + " light=" + (mcWorld() != null ? mcWorld().getLightFor(net.minecraft.world.EnumSkyBlock.BLOCK, p.east()) : -1) + " scanned=" + scanned + " listed=" + listed + "#" + index
                 + "/" + ls.size() + " " + instance.gpu.debugAt(ground) + " cpu=" + instance.blockLight.debugAt(ground);
     }
 

@@ -96,7 +96,7 @@ public class LumenAutoTest {
         s = new Scene("3h_tallgrass_torch", 18000, 300);
         s.setup = () -> setupTallGrass();
         scenes.add(s);
-        s = new Scene("3i_far_lights_walking", 18000, 700);
+        s = new Scene("3i_far_lights_walking", 18000, 760);
         s.setup = () -> setupFarLights();
         s.during = left -> walkFar(left);
         s.cpu = true;
@@ -509,8 +509,20 @@ public class LumenAutoTest {
      */
     private void setupFarLights() {
         mc.gameSettings.renderDistanceChunks = 12;
+        farTowers.clear();
         onServer(w -> {
             farBase = w.getTopSolidOrLiquidBlock(spawn.add(-200, 0, -200));
+            // stand among the towers while they're built, so the game computes their light
+            player(w).connection.setPlayerLocation(farBase.getX() + 100.5, farBase.getY() + 20, farBase.getZ() + 0.5, -90f, 12f);
+        });
+        yaw = -90f; pitch = 12f;
+    }
+
+    /** Build the towers (near them), go back, then walk toward them at walking speed (4.3 blocks/s). */
+    private void walkFar(int left) {
+        if (farBase == null) return;
+        int done = 760 - left;
+        if (done == 40) onServer(w -> {
             for (int i = 0; i < 6; i++) {
                 BlockPos t = w.getTopSolidOrLiquidBlock(farBase.add(40 + i * 24, 0, (i % 2 == 0 ? -6 : 6)));
                 for (int h = 0; h < 3; h++) w.setBlockState(t.up(h), Blocks.COBBLESTONE.getDefaultState());
@@ -518,16 +530,9 @@ public class LumenAutoTest {
                 w.setBlockState(t.up(4), Blocks.TORCH.getDefaultState());
                 farTowers.add(t.up(3));
             }
-            player(w).connection.setPlayerLocation(farBase.getX() - 40.5, farBase.getY() + 20, farBase.getZ() + 0.5, -90f, 12f);
         });
-        yaw = -90f; pitch = 12f;
-    }
-
-    /** Walk toward the towers (4.3 blocks/s, like walking), crossing many sections before the shot. */
-    private void walkFar(int left) {
-        if (farBase == null) return;
-        int done = 700 - left;   // walk for 14 s, then let the far terrain finish drawing
-        double x = farBase.getX() - 40.5 + Math.min(done, 280) * 0.215;
+        if (done < 80) { look(); return; }
+        double x = farBase.getX() - 40.5 + Math.min(done - 80, 280) * 0.215;
         final double fx = x;
         onServer(w -> player(w).connection.setPlayerLocation(fx, farBase.getY() + 20, farBase.getZ() + 0.5, -90f, 12f));
         look();
