@@ -123,7 +123,9 @@ final class LightModel {
                 if (vis > 0) {
                     float b = bright(lev) * vis * (float) Math.min(1.0, 0.82 + ndl * 0.3);   // gentle: grazing floors stay lit
                     if (b > best) best = b;
-                    cr += b * l.col[0]; cg += b * l.col[1]; cb += b * l.col[2]; ws += b;
+                    // color: the strongest light at a spot dominates (b^4), so neighbouring pools keep their own color
+                    float wc = b * b * b * b;
+                    cr += wc * l.col[0]; cg += wc * l.col[1]; cb += wc * l.col[2]; ws += wc;
                 }
             }
             if (open && i < 24) mask |= 1 << i;
