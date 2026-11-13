@@ -92,7 +92,7 @@ public class MovingLightOverlay {
     public void tick(BlockLightSections statics) {
         if (world == null) return;
         Result r;
-        while ((r = done.poll()) != null) {
+        while ((r = done.poll()) != null) {   // (moving lights have their own thread)
             r.src.queued = false;
             if (r.gen != gen || !srcs.containsKey(r.src.id)) continue;
             compile(r.src, r);

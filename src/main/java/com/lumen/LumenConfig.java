@@ -73,7 +73,7 @@ public class LumenConfig {
         public boolean shadows = true;
         @Config.Comment("How dark the shadows of block lights are (0..1)")
         @Config.RangeDouble(min = 0, max = 1)
-        public double shadowStrength = 0.85;
+        public double shadowStrength = 0.7;   // light bouncing off nearby surfaces keeps shadows from going black
         @Config.Comment("Shadow edge sharpness: shadow edges are refined down to 1/N of a block (16 = pixel sharp,\n"
                 + "4 = quarter-block). Only refined where an edge actually is; costs background-thread time and some geometry.")
         @Config.RangeInt(min = 1, max = 16)

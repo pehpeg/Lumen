@@ -368,10 +368,17 @@ public class LumenAutoTest {
     private void setupEntities(boolean night) {
         onServer(w -> {
             BlockPos g = flatFloor(w, spawn.add(40, 0, 80), 10);
-            if (night) w.setBlockState(g.add(0, 0, -2), Blocks.TORCH.getDefaultState());
+            if (night) {
+                w.setBlockState(g.add(0, 0, -2), Blocks.TORCH.getDefaultState());
+                w.setBlockState(g.add(-5, 0, 1), Blocks.TORCH.getDefaultState());   // a second light: shadows must not cross lit spots
+            }
             net.minecraft.entity.EntityLiving[] mobs = {new net.minecraft.entity.passive.EntityVillager(w),
                     new net.minecraft.entity.passive.EntityPig(w), new net.minecraft.entity.monster.EntityZombie(w)};
             double[][] at = {{-2, 0}, {1.5, 0.5}, {0, 2}};
+            net.minecraft.entity.passive.EntityChicken flier = new net.minecraft.entity.passive.EntityChicken(w);
+            flier.setNoAI(true); flier.setNoGravity(true); flier.enablePersistence();
+            flier.setLocationAndAngles(g.getX() + 3.5, g.getY() + 2.5, g.getZ() - 1.5, 0f, 0f);   // in the air
+            w.spawnEntity(flier);
             for (int i = 0; i < mobs.length; i++) {
                 mobs[i].setNoAI(true);
                 mobs[i].enablePersistence();

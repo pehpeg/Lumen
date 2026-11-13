@@ -29,6 +29,7 @@ final class LightModel {
         final float level;
         final float[] col;           // brightness-normalized color (1,1,1 = white)
         final BlockPos block;        // block to ignore in rays (the light itself), may be null
+        boolean area;                // a full glowing block: light leaves from its whole surface
         final int rgb;
         Light(double x, double y, double z, float level, int rgb, BlockPos block) {
             this.x = x; this.y = y; this.z = z; this.level = level; this.col = normCol(rgb); this.block = block; this.rgb = rgb;
@@ -120,16 +121,26 @@ final class LightModel {
         float[] tr = new float[3];
         for (int i = 0; i < lights.size(); i++) {
             Light l = lights.get(i);
-            double vx = l.x - sx, vy = l.y - sy, vz = l.z - sz;
+            double lx = l.x, ly = l.y, lz = l.z;
+            if (l.area && l.block != null) {
+                // nearest point of the glowing block's surface, a hair outside it
+                double bx = l.block.getX(), by = l.block.getY(), bz = l.block.getZ();
+                lx = Math.max(bx - 0.01, Math.min(bx + 1.01, sx));
+                ly = Math.max(by - 0.01, Math.min(by + 1.01, sy));
+                lz = Math.max(bz - 0.01, Math.min(bz + 1.01, sz));
+            }
+            double vx = lx - sx, vy = ly - sy, vz = lz - sz;
             double dist = Math.sqrt(vx * vx + vy * vy + vz * vz);
-            float lev = l.level - (float) dist * FALLOFF;
+            float lev = l.level - 0.5f - (float) dist * FALLOFF;
+            if (!l.area) lev = l.level - (float) dist * FALLOFF;
             int state = 2;                                   // 0 blocked, 1 tinted, 2 clear (for shadow edges)
             if (lev > 0 && dist > 1e-4) {
                 vx /= dist; vy /= dist; vz /= dist;
                 double ndl = n[0] * vx + n[1] * vy + n[2] * vz;
                 if (twoSided) ndl = Math.abs(ndl);
                 tr[0] = tr[1] = tr[2] = 1f;
-                if (ndl > 0) Occlusion.walkRgb(w, m, sx, sy, sz, vx, vy, vz, dist - 0.05, l.block, false, tr);
+                if (l.area && dist < 0.05) ndl = 1;   // touching the glowing block
+                if (ndl > 0) Occlusion.walkRgb(w, m, sx, sy, sz, vx, vy, vz, Math.max(0, dist - 0.05), l.block, false, tr);
                 else tr[0] = tr[1] = tr[2] = 0f;
                 float tm = Math.max(tr[0], Math.max(tr[1], tr[2]));
                 state = tm <= 0.5f ? 0 : (Math.min(tr[0], Math.min(tr[1], tr[2])) < tm * 0.85f ? 1 : 2);

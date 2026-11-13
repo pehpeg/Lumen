@@ -38,7 +38,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class BlockLightSections {
 
     private final Minecraft mc = Minecraft.getMinecraft();
-    private final ExecutorService worker = Executors.newSingleThreadExecutor(r -> {
+    private static final int THREADS = Math.max(1, Math.min(3, Runtime.getRuntime().availableProcessors() - 2));
+    private final ExecutorService worker = Executors.newFixedThreadPool(THREADS, r -> {
         Thread t = new Thread(r, "Lumen light builder");
         t.setDaemon(true);
         t.setPriority(Thread.NORM_PRIORITY - 1);
@@ -49,6 +50,7 @@ public class BlockLightSections {
         final int sx, sy, sz;
         int list = -1, quads;
         boolean dirty = true, queued;
+        boolean urgent = true;          // a light or block changed here (daylight refreshes aren't urgent)
         Section(int sx, int sy, int sz) { this.sx = sx; this.sy = sy; this.sz = sz; }
     }
 
@@ -90,7 +92,10 @@ public class BlockLightSections {
         Set<String> ids = new HashSet<>();
         for (SectionScanner.ColorLight l : list) {
             double[] e = LightModel.emissionPoint(l.pos, w.getBlockState(l.pos));
-            now.add(new LightModel.Light(e[0], e[1], e[2], l.level, l.rgb, l.pos));
+            net.minecraft.block.state.IBlockState ls = w.getBlockState(l.pos);
+            LightModel.Light ml = new LightModel.Light(e[0], e[1], e[2], l.level, l.rgb, l.pos);
+            ml.area = ls.isOpaqueCube() && ls.isFullCube();
+            now.add(ml);
             ids.add(l.pos.toLong() + ":" + l.level + ":" + l.rgb);
         }
         if (ids.equals(lightIds)) return;
@@ -129,6 +134,7 @@ public class BlockLightSections {
             Section s = sections.get(key(x, y, z));
             if (s == null) { s = new Section(x, y, z); sections.put(key(x, y, z), s); }
             s.dirty = true;
+            s.urgent = true;
         });
     }
 
@@ -142,7 +148,7 @@ public class BlockLightSections {
 
     public void tick() {
         if (world == null || mc.player == null) return;
-        int bucket = Math.round(world.getSunBrightness(1f) * 10);   // sky light changes the balance
+        int bucket = Math.round(world.getSunBrightness(1f) * 4);    // sky light changes the balance (coarse steps)
         if (bucket != dayBucket) { dayBucket = bucket; for (Section s : sections.values()) s.dirty = true; }
 
         Result r;
@@ -156,9 +162,10 @@ public class BlockLightSections {
         List<Section> todo = new ArrayList<>();
         for (Section s : sections.values()) if (s.dirty && !s.queued) todo.add(s);
         final double px = mc.player.posX / 16, py = mc.player.posY / 16, pz = mc.player.posZ / 16;
-        todo.sort((a, b) -> Double.compare(d2(a, px, py, pz), d2(b, px, py, pz)));
+        // new lights and changed blocks first, then nearest
+        todo.sort((a, b) -> a.urgent != b.urgent ? (a.urgent ? -1 : 1) : Double.compare(d2(a, px, py, pz), d2(b, px, py, pz)));
         for (Section s : todo) {
-            if (pending.get() >= 4) break;
+            if (pending.get() >= THREADS * 2 + 1) break;
             submit(s);
         }
         statSections = sections.size();
@@ -172,6 +179,7 @@ public class BlockLightSections {
 
     private void submit(Section s) {
         s.dirty = false;
+        s.urgent = false;
         s.queued = true;
         int ox = s.sx << 4, oy = s.sy << 4, oz = s.sz << 4;
         // lights that reach this section
