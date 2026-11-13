@@ -36,7 +36,7 @@ final class VoxelVolume {
     int tex = -1;
     int csx, csy, csz;            // center section
     private final long[] slotKey;
-    private final Set<Long> dirty = new HashSet<>(), queued = new HashSet<>();
+    private final Set<Long> dirty = new HashSet<>(), lazy = new HashSet<>(), queued = new HashSet<>();
     private final ConcurrentLinkedQueue<Object[]> done = new ConcurrentLinkedQueue<>();   // {Long key, int sx, sy, sz, ByteBuffer}
     private final AtomicInteger pending = new AtomicInteger();
     private final ExecutorService worker = Executors.newFixedThreadPool(2, r -> {
@@ -95,9 +95,12 @@ final class VoxelVolume {
 
     void markDirty(BlockPos p) {
         int x = p.getX(), y = p.getY(), z = p.getZ();
-        // light changes spread: refresh the neighbours the change touches too
-        for (int dx = -1; dx <= 1; dx++) for (int dy = -1; dy <= 1; dy++) for (int dz = -1; dz <= 1; dz++)
-            dirty.add(key((x + dx * 15) >> 4, (y + dy * 15) >> 4, (z + dz * 15) >> 4));
+        // the block's own section right away (and the neighbour when it sits on the border: fences
+        // and panes there connect differently); the light it changes around it a bit later
+        for (int dx = -1; dx <= 1; dx++) for (int dy = -1; dy <= 1; dy++) for (int dz = -1; dz <= 1; dz++) {
+            dirty.add(key((x + dx) >> 4, (y + dy) >> 4, (z + dz) >> 4));
+            lazy.add(key((x + dx * 15) >> 4, (y + dy * 15) >> 4, (z + dz * 15) >> 4));
+        }
     }
 
     void tick(World w, int psx, int psy, int psz) {
@@ -107,7 +110,12 @@ final class VoxelVolume {
             int sx = csx + x, sy = csy + y, sz = csz + z;
             long k = key(sx, sy, sz);
             if (queued.contains(k)) continue;
-            if (slotKey[slot(sx, sy, sz)] != k || dirty.contains(k)) want.add(new int[]{sx, sy, sz, x * x + y * y * 2 + z * z});
+            int d = x * x + y * y * 2 + z * z;
+            boolean stored = slotKey[slot(sx, sy, sz)] == k;
+            // stale blocks in use first (a carved room would still be solid), then new sections, then light refreshes
+            if (stored && dirty.contains(k)) want.add(new int[]{sx, sy, sz, d});
+            else if (!stored) want.add(new int[]{sx, sy, sz, 100000 + d});
+            else if (lazy.contains(k)) want.add(new int[]{sx, sy, sz, 200000 + d});
         }
         // vanilla light changes without block changes (other light sources): slowly refresh near sections
         if (want.isEmpty()) {
@@ -119,7 +127,7 @@ final class VoxelVolume {
         }
         want.sort((a, b) -> Integer.compare(a[3], b[3]));
         for (int[] s : want) {
-            if (pending.get() >= 6) break;
+            if (pending.get() >= 12) break;
             int sx = s[0], sy = s[1], sz = s[2];
             if (sy >= 0 && sy <= 15 && !w.isChunkGeneratedAt(sx, sz)) { statSkippedUnloaded++; continue; }
             submit(w, sx, sy, sz);
@@ -129,6 +137,7 @@ final class VoxelVolume {
     private void submit(World w, int sx, int sy, int sz) {
         long k = key(sx, sy, sz);
         dirty.remove(k);
+        lazy.remove(k);
         queued.add(k);
         ChunkCache cache = sy < 0 || sy > 15 ? null
                 : new ChunkCache(w, new BlockPos((sx << 4) - 1, Math.max(0, (sy << 4) - 1), (sz << 4) - 1),

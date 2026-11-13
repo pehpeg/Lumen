@@ -324,7 +324,7 @@ public final class GpuLighting {
         }
         if (bound) GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
         // shapes first: a section may refer to a shape that was just numbered
-        if (atlas.uploads.isEmpty()) vol.upload(24);
+        if (atlas.uploads.isEmpty()) vol.upload(48);
         int compiled = 0;
         while (compiled < 8 && (r = geoDone.poll()) != null) {
             Geo g = (Geo) r[0];
