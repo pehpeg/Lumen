@@ -218,15 +218,17 @@ final class EntityShadows {
         // anything the lamp list doesn't know about (vanilla light from other sources) still lights it
         float other = bright(vanillaBlock) * (1f - lampK);   // bounce light: the same floor block-light shadows have
         b0 = Math.max(b0, other); b1 = Math.max(b1, other);
-        // sky + direct sun
-        float s0 = skyB, s1 = skyB, sunShare = 0;
+        // lamp shadows: brightness with and without the body (sky light also fills them in)
+        float lampDark = Math.max(0f, 1f - LightModel.shown(b1, skyB) / Math.max(1e-4f, LightModel.shown(b0, skyB)));
+        // sun shadow: direct sunlight is far stronger than any lamp, so it's judged on its own;
+        // only a strong nearby lamp softens it a little
+        float sunDark = 0, sunShare = 0;
         if (sun && (sx * nx + sy * ny + sz * nz) > 0 && hits(b, px, py, pz, sx, sy, sz, 64)) {
             mask |= 1 << 23;
-            s1 = skyB * (1f - sunK);
+            sunDark = sunK * Math.min(1f, skyB) * (1f - 0.35f * Math.min(1f, b0));
             sunShare = 1;
         }
-        float l0 = LightModel.shown(b0, s0), l1 = LightModel.shown(b1, s1);
-        float dark = Math.max(0f, Math.min(0.95f, 1f - l1 / Math.max(1e-4f, l0)));
+        float dark = Math.max(0f, Math.min(0.92f, 1f - (1f - lampDark) * (1f - sunDark)));
         return new float[]{mask, dark, sunShare};   // mask < 2^24: exact as a float, marks hard shadow edges
     }
 
