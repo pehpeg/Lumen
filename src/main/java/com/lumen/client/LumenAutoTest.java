@@ -48,6 +48,7 @@ public class LumenAutoTest {
 
     private static final class Scene {
         final String name; final long time; final int settle;
+        boolean cpu;   // also take a shot with the CPU light path, for comparison with the GPU one
         Runnable setup = () -> {};
         Scene(String name, long time, int settle) { this.name = name; this.time = time; this.settle = settle; }
     }
@@ -65,21 +66,25 @@ public class LumenAutoTest {
         Scene s;
         s = new Scene("1_dynamic_torch_night", 18000, 220);
         s.setup = () -> setupDynamicNight();
+        s.cpu = true;
         scenes.add(s);
         s = new Scene("2_dynamic_torch_cave", 18000, 200);
         s.setup = () -> setupDarkRoom();
+        s.cpu = true;
         scenes.add(s);
         s = new Scene("3_colored_lights", 18000, 260);
         s.setup = () -> setupColoredPlaza();
         scenes.add(s);
         s = new Scene("3b_torch_shadows", 18000, 300);
         s.setup = () -> setupTorchShadows();
+        s.cpu = true;
         scenes.add(s);
         s = new Scene("3c_stairs_grass", 18000, 300);
         s.setup = () -> setupStairsGrass();
         scenes.add(s);
         s = new Scene("3d_gaps_bars_ladder_fence", 18000, 300);
         s.setup = () -> setupGaps();
+        s.cpu = true;
         scenes.add(s);
         s = new Scene("3e_stained_glass", 18000, 300);
         s.setup = () -> setupGlass();
@@ -172,6 +177,19 @@ public class LumenAutoTest {
                 try { s.setup.run(); } catch (Exception ex) { log(s.name + ": setup failed: " + ex); skipScene = true; }
                 LumenClient.resetTimers();
                 wait = s.settle;
+                phase = 1;
+                if (s.cpu) { LumenConfig.colored.gpu = false; phase = 3; }
+                break;
+            case 3:
+                look();
+                pendingShot = s.name + "_cpu";
+                wait = 5;
+                phase = 4;
+                break;
+            case 4:
+                LumenConfig.colored.gpu = true;   // back to the GPU path for the main shot
+                LumenClient.resetTimers();
+                wait = 240;
                 phase = 1;
                 break;
             case 1:
