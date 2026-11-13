@@ -26,6 +26,14 @@ own light engine or draws its own layer, so it works no matter which chunk rende
 - **Light definitions** – `block_light.colors` takes `modid:block=RRGGBB` or `modid:block=RRGGBB,level`
   to recolor any light block (modded too) or change how far its light reaches.
 
+- **GPU lighting** – on graphics cards with OpenGL 3.0+, block and moving lights are traced per pixel
+  on the GPU against a copy of the nearby blocks (`block_light.gpu`, radius `block_light.gpuRadius`);
+  the CPU only keeps that copy up to date. Works with any chunk renderer (vanilla, Relictium,
+  Nothirium...). Falls back to the CPU path automatically. The approach - tracing light per pixel
+  through the block shapes on the GPU - is inspired by
+  [Vibrancy](https://github.com/TheTypholorian/vibrancy) (MIT) by The Typhothanian; Lumen's
+  implementation is its own.
+
 Press **K** to turn Lumen on and off (rebindable in Controls → Lumen).
 
 **Requires [MixinBooter](https://www.curseforge.com/minecraft/mc-mods/mixin-booter).** Settings: `config/lumen-lighting.cfg`.

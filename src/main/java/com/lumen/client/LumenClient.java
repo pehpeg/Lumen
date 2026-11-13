@@ -46,6 +46,7 @@ public class LumenClient {
     final BlockLightSections blockLight = new BlockLightSections();
     final MovingLightOverlay movingLights = new MovingLightOverlay();
     final SunShadows shadows = new SunShadows();
+    final GpuLighting gpu = new GpuLighting();
 
     private int lastScanVersion = -1, glowVersion = -1;
     private final Map<EmissiveTextures.Glow, List<SectionScanner.GlowQuad>> glowGroups = new IdentityHashMap<>();
@@ -57,6 +58,8 @@ public class LumenClient {
     static void addTickTime(long nanos) { tickNanos += nanos; worstTick = Math.max(worstTick, nanos); }
 
     public static void resetTimers() { tickNanos = tickCount = renderNanos = renderCount = worstTick = 0; }
+
+    public static String gpuStats() { return instance == null ? "" : instance.gpu.stats(); }
 
     public static String timings() {
         return String.format("cpu: tick avg %.3fms worst %.2fms, frame avg %.3fms",
@@ -79,6 +82,7 @@ public class LumenClient {
                 instance.scanner.clearCaches();
                 instance.blockLight.clear();
                 instance.movingLights.clear();
+                instance.gpu.clear();
                 instance.lastScanVersion = -1;
             });
         }
@@ -93,6 +97,7 @@ public class LumenClient {
         instance.blockLight.clear();
                 instance.movingLights.clear();
         instance.shadows.clear();
+        instance.gpu.clear();
         instance.lastScanVersion = -1;
     }
 
@@ -118,9 +123,16 @@ public class LumenClient {
                 lastScanVersion = scanner.version;
                 blockLight.update(scanner.colorLights());
             }
+            boolean onGpu = gpu.active();
+            BlockLightSections.gpu = onGpu ? gpu : null;
             blockLight.tick();
-            movingLights.update(dynamicLights.moving());
-            movingLights.tick(blockLight);
+            if (onGpu) {
+                gpu.tick(blockLight.lights(), dynamicLights.moving());
+                if (movingLights.hasAny()) movingLights.clear();   // the GPU draws moving lights
+            } else {
+                movingLights.update(dynamicLights.moving());
+                movingLights.tick(blockLight);
+            }
         }
         shadows.tick();
     }
@@ -131,6 +143,7 @@ public class LumenClient {
             if (oldState == newState) return;
             scanner.markDirty(pos);
             blockLight.markDirty(pos);
+            gpu.markDirty(pos);
             shadows.markDirty(pos);
         }
         @Override public void notifyLightSet(BlockPos pos) {}
@@ -202,6 +215,13 @@ public class LumenClient {
                 blockLight.render(cx, cy, cz);
                 GlSafe.additive(atlas);          // moving lights add their light on top
                 movingLights.render(cx, cy, cz);
+                if (BlockLightSections.gpu != null) {
+                    try {
+                        gpu.render(cx, cy, cz, pt, blockLight.lights(), dynamicLights.moving());
+                    } catch (Throwable t) {
+                        gpu.fail(t);
+                    }
+                }
             }
             // 2) glowing textures, full-bright
             if (LumenConfig.emissive.enabled) drawEmissive(cx, cy, cz, pt);

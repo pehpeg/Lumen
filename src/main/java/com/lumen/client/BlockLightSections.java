@@ -51,6 +51,7 @@ public class BlockLightSections {
         int list = -1, quads;
         boolean dirty = true, queued;
         boolean urgent = true;          // a light or block changed here (daylight refreshes aren't urgent)
+        boolean gpuSkip;                // the graphics card lights this section
         Section(int sx, int sy, int sz) { this.sx = sx; this.sy = sy; this.sz = sz; }
     }
 
@@ -68,6 +69,9 @@ public class BlockLightSections {
     private World world;
     public static int statLights, statSections, statQuads, statPending;
     public static long statLastBuildMicros;
+
+    /** When set, sections the GPU path lights are skipped here. */
+    static GpuLighting gpu;
 
     private static long key(int x, int y, int z) { return ((long) x << 40) | ((long) (y & 0xFF) << 32) | (z & 0xFFFFFFFFL); }
 
@@ -160,7 +164,15 @@ public class BlockLightSections {
             compiled++;
         }
         List<Section> todo = new ArrayList<>();
-        for (Section s : sections.values()) if (s.dirty && !s.queued) todo.add(s);
+        for (Section s : sections.values()) {
+            if (gpu != null && gpu.eligible(s.sx, s.sy, s.sz)) {
+                if (s.list >= 0 && gpu.covers(s.sx, s.sy, s.sz)) { free(s); s.quads = 0; }
+                s.gpuSkip = true;
+                continue;
+            }
+            if (s.gpuSkip) { s.gpuSkip = false; s.dirty = true; }
+            if (s.dirty && !s.queued) todo.add(s);
+        }
         final double px = mc.player.posX / 16, py = mc.player.posY / 16, pz = mc.player.posZ / 16;
         // new lights and changed blocks first, then nearest
         todo.sort((a, b) -> a.urgent != b.urgent ? (a.urgent ? -1 : 1) : Double.compare(d2(a, px, py, pz), d2(b, px, py, pz)));
@@ -301,6 +313,7 @@ public class BlockLightSections {
         int q = 0;
         for (Section s : sections.values()) {
             if (s.list < 0 || s.quads == 0) continue;
+            if (gpu != null && gpu.covers(s.sx, s.sy, s.sz)) continue;
             GL11.glPushMatrix();
             GL11.glTranslated((s.sx << 4) - cx, (s.sy << 4) - cy, (s.sz << 4) - cz);
             GL11.glCallList(s.list);

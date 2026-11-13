@@ -117,6 +117,78 @@ final class Shapes {
         return true;
     }
 
+    /**
+     * The block's shape as 16x16x16 pixel voxels for GPU tracing: 128 ints of bits (bit index
+     * x + y*16 + z*256) and a meta int: bit0 translucent, bit1 soft, bit2 borrows its neighbours'
+     * light (stairs/slabs), bits 8..31 = how much r/g/b gets through a hit (tint or dimming).
+     * null if nothing in it stops light.
+     */
+    static int[] voxelize(IBlockState actual, IBlockAccess w, BlockPos pos) {
+        Shape s = SHAPES.get(actual);
+        if (s == null) { s = build(actual); SHAPES.put(actual, s); }
+        int[] out = new int[129];
+        boolean any = false;
+        float sr = 0, sg = 0, sb = 0, sa = 0; int sn = 0;
+        if (!s.model) {
+            AxisAlignedBB box;
+            try { box = actual.getBoundingBox(w, pos); } catch (Throwable e) { box = null; }
+            if (box == null) return null;
+            int x0 = vox(box.minX), y0 = vox(box.minY), z0 = vox(box.minZ);
+            int x1 = Math.max(x0, (int) Math.ceil(box.maxX * 16 - 1e-4) - 1), y1 = Math.max(y0, (int) Math.ceil(box.maxY * 16 - 1e-4) - 1),
+                    z1 = Math.max(z0, (int) Math.ceil(box.maxZ * 16 - 1e-4) - 1);
+            for (int x = x0; x <= Math.min(15, x1); x++) for (int y = y0; y <= Math.min(15, y1); y++) for (int z = z0; z <= Math.min(15, z1); z++) {
+                int bit = x + y * 16 + z * 256;
+                out[bit >> 5] |= 1 << (bit & 31);
+                any = true;
+            }
+        } else {
+            float thr = s.soft || s.translucent ? 0.1f : 0.5f;
+            final int N = 48;
+            for (Quad q : s.quads) {
+                double nl = Math.sqrt(q.nx * q.nx + q.ny * q.ny + q.nz * q.nz);
+                if (nl < 1e-9) continue;
+                // half a pixel inward, so a face on a pixel boundary marks the solid side
+                double px = -q.nx / nl / 32, py = -q.ny / nl / 32, pz = -q.nz / nl / 32;
+                for (int i = 0; i < N; i++) for (int j = 0; j < N; j++) {
+                    double a = (i + 0.5) / N, b = (j + 0.5) / N;
+                    float pu = (float) ((1 - a) * (1 - b) * q.u[0] + a * (1 - b) * q.u[1] + a * b * q.u[2] + (1 - a) * b * q.u[3]);
+                    float pv = (float) ((1 - a) * (1 - b) * q.v[0] + a * (1 - b) * q.v[1] + a * b * q.v[2] + (1 - a) * b * q.v[3]);
+                    Mask mk = q.mask;
+                    int ix = Math.min(mk.w - 1, Math.max(0, (int) (pu * mk.w))), iy = Math.min(mk.h - 1, Math.max(0, (int) (pv * mk.h)));
+                    int c = mk.argb[iy * mk.w + ix];
+                    float al = (c >>> 24) / 255f;
+                    if (al < thr) continue;
+                    int x = vox(q.ox + q.ax * a + q.bx * b + px), y = vox(q.oy + q.ay * a + q.by * b + py), z = vox(q.oz + q.az * a + q.bz * b + pz);
+                    int bit = x + y * 16 + z * 256;
+                    out[bit >> 5] |= 1 << (bit & 31);
+                    any = true;
+                    if (s.translucent) { sr += ((c >> 16) & 0xFF) / 255f; sg += ((c >> 8) & 0xFF) / 255f; sb += (c & 0xFF) / 255f; sa += al; sn++; }
+                }
+            }
+        }
+        if (!any) return null;
+        int meta = 0;
+        float tr = 0, tg = 0, tb = 0;
+        if (s.translucent && sn > 0) {
+            float r = sr / sn, g = sg / sn, b = sb / sn, a = sa / sn;
+            float mx = Math.max(0.05f, Math.max(r, Math.max(g, b)));
+            float k = Math.min(1f, a * 1.6f), dim = 1f - 0.3f * a;
+            tr = (1 - k + k * r / mx) * dim; tg = (1 - k + k * g / mx) * dim; tb = (1 - k + k * b / mx) * dim;
+            meta |= 1;
+        } else if (s.soft) {
+            boolean plant = actual.getMaterial() != net.minecraft.block.material.Material.GLASS;
+            tr = tg = tb = plant ? 0.55f : 0.7f;   // a plant: a clear shadow, light still gets through
+            meta |= 2;
+        }
+        try { if (actual.useNeighborBrightness()) meta |= 4; } catch (Throwable ignored) { }
+        meta |= (Math.round(Math.max(0, Math.min(1, tr)) * 255) << 8) | (Math.round(Math.max(0, Math.min(1, tg)) * 255) << 16)
+                | (Math.round(Math.max(0, Math.min(1, tb)) * 255) << 24);
+        out[128] = meta;
+        return out;
+    }
+
+    private static int vox(double v) { return Math.max(0, Math.min(15, (int) Math.floor(v * 16))); }
+
     private static Shape build(IBlockState st) {
         boolean translucent;
         try { translucent = st.getBlock().getRenderLayer() == BlockRenderLayer.TRANSLUCENT; } catch (Throwable e) { translucent = false; }

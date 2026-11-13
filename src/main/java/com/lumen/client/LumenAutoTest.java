@@ -204,6 +204,7 @@ public class LumenAutoTest {
                 + " lastSection=" + BlockLightSections.statLastBuildMicros + "us"
                 + " | movingLayers=" + MovingLightOverlay.statSources + " quads=" + MovingLightOverlay.statQuads
                 + " lastMoving=" + MovingLightOverlay.statLastBuildMicros + "us"
+                + " | " + LumenClient.gpuStats()
                 + " | entityShadows=" + EntityShadows.statEntities + "/" + EntityShadows.statQuads + "q"
                 + " | glow quads=" + SectionScanner.statQuads + " packTex=" + EmissiveTextures.statPack + " autoTex=" + EmissiveTextures.statAuto
                 + " | shadow quads=" + SunShadows.statQuads + " pending=" + SunShadows.statPending

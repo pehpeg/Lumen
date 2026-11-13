@@ -81,6 +81,13 @@ public class LumenConfig {
         @Config.Comment("Max number of lights that get color and shadows (nearest first)")
         @Config.RangeInt(min = 4, max = 2048)
         public int maxLights = 512;
+        @Config.Comment("Trace light on the graphics card (needs OpenGL 3.0; falls back to the CPU automatically).\n"
+                + "Much lighter on the CPU, pixel-sharp at any distance, and moving lights follow every frame.")
+        public boolean gpu = true;
+        @Config.Comment("Radius in chunks around you that the graphics card lights; further away the CPU path takes over.\n"
+                + "Each step costs some video memory (5 = about 16 MB).")
+        @Config.RangeInt(min = 2, max = 8)
+        public int gpuRadius = 5;
         @Config.Comment("Light definitions as 'modid:block=RRGGBB' or 'modid:block=RRGGBB,level'. The color overrides the automatic\n"
                 + "color; the optional level (0..15) changes how far Lumen's light from that block reaches (0 = no Lumen light).\n"
                 + "Works for modded lamps too.")

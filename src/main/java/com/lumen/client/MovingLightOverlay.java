@@ -244,6 +244,8 @@ public class MovingLightOverlay {
         statQuads = q;
     }
 
+    boolean hasAny() { return !srcs.isEmpty(); }
+
     public void clear() {
         gen++;
         for (Src s : srcs.values()) free(s);
